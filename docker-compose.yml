@@ -10,7 +10,7 @@ services:
     environment:
       POSTGRES_USER: 'root'
       POSTGRES_PASSWORD: 'password'
-      POSTGRES_DB: 'homework'
+      POSTGRES_DB: 'weather_report'
 
   web:
     build: .
@@ -19,4 +19,4 @@ services:
     links:
       - db
     volumes:
-     - .:/code
+     - ./app:/code

@@ -12,20 +12,43 @@ connection_params = {
     'port': '5432',
     'user': 'root',
     'password': 'password',
-    'dbname': 'homework'
+    'dbname': 'weather_report'
 }
 
+conn = psycopg2.connect(**connection_params)
+cursor = conn.cursor()
 
 @app.route('/')
 def hello():
-
-    conn = psycopg2.connect(**connection_params)
-    cursor = conn.cursor()
+    sql = """
+    drop table if exists weather;
+create table weather(
+n_day integer,
+t float
+);
+insert into weather values (1, 1.39)
+        """
+    cursor.execute(sql)
+    conn.commit()
     return '<h1>Hello world!</h1>\n'
 
 @app.route('/weather')
 def weather():
-    return '<h1>weather!</h1>\n'
+    sql = """
+insert into weather values (1, %s)
+        """ % time.time()
+    cursor.execute(sql)
+    conn.commit()
+    sql = """
+        SELECT * FROM weather
+        """
+    cursor.execute(sql)
+    res = cursor.fetchall()
+    # s = [str(i)+'<br><hr>' for i in res]
+    s = ''
+    for i in res:
+        s += str(i) + '<br><hr>'
+    return s
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
