@@ -5,7 +5,6 @@ from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 from wtforms import StringField
 import psycopg2
-from upload_data import *
 
 app = Flask(__name__)
 connection_params = {

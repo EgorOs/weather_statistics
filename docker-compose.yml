@@ -14,10 +14,22 @@ services:
     volumes:
       - ./app/sql/01_init.sql:/docker-entrypoint-initdb.d/01_init.sql
 
+  db_uploader:
+    build: ./database
+    depends_on:
+      - db
+    links:
+      - db
+    volumes:
+     - ./database:/code
+
   web:
     build: ./app
     ports:
       - "5000:5000"
+    depends_on:
+      - db
+      - db_uploader
     links:
       - db
     volumes:

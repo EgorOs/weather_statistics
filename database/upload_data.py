@@ -4,6 +4,7 @@ import os
 import gzip
 import csv
 import psycopg2
+import time
 
 
 class RawDataRP5:
@@ -177,13 +178,24 @@ def create_tables(connection_params, temp_csv_name):
 
 if __name__ == '__main__':
     connection_params = {
-        'host': 'localhost',
-        'port': '5431',
+        'host': 'db',
+        'port': '5432',
         'user': 'root',
         'password': 'password',
         'dbname': 'weather_report'
     }
+    while True:
+        try:
+            conn = psycopg2.connect(**connection_params)
+            print('Connetction established')
+            conn.close()
+            break
+        except psycopg2.OperationalError:
+            print('Trying to connect to database')
+            time.sleep(1)
+
     create_tables(connection_params, 'tmp.csv')
+    print('Data was successfully uploaded')
 
 """
 Possible tests:
