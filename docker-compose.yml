@@ -11,9 +11,11 @@ services:
       POSTGRES_USER: 'root'
       POSTGRES_PASSWORD: 'password'
       POSTGRES_DB: 'weather_report'
+    volumes:
+      - ./app/sql/01_init.sql:/docker-entrypoint-initdb.d/01_init.sql
 
   web:
-    build: .
+    build: ./app
     ports:
       - "5000:5000"
     links:

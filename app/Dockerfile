@@ -1,7 +1,7 @@
 FROM python:3.5-alpine
 
 
-ADD ./app /code
+ADD . /code
 WORKDIR /code
 
 

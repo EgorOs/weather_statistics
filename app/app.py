@@ -4,7 +4,7 @@ import time
 import sqlite3
 from flask import Flask
 import psycopg2
-
+# import upload_data
 app = Flask(__name__)
 
 connection_params = {
@@ -15,11 +15,10 @@ connection_params = {
     'dbname': 'weather_report'
 }
 
-conn = psycopg2.connect(**connection_params)
-cursor = conn.cursor()
-
 @app.route('/')
 def hello():
+    conn = psycopg2.connect(**connection_params)
+    cursor = conn.cursor()
     sql = """
     drop table if exists weather;
 create table weather(
@@ -34,6 +33,8 @@ insert into weather values (1, 1.39)
 
 @app.route('/weather')
 def weather():
+    conn = psycopg2.connect(**connection_params)
+    cursor = conn.cursor()
     sql = """
 insert into weather values (1, %s)
         """ % time.time()
