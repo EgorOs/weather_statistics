@@ -184,6 +184,7 @@ if __name__ == '__main__':
         'password': 'password',
         'dbname': 'weather_report'
     }
+    
     while True:
         try:
             conn = psycopg2.connect(**connection_params)

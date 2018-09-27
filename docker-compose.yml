@@ -12,7 +12,7 @@ services:
       POSTGRES_PASSWORD: 'password'
       POSTGRES_DB: 'weather_report'
     volumes:
-      - ./app/sql/01_init.sql:/docker-entrypoint-initdb.d/01_init.sql
+      - ./database/sql/01_init.sql:/docker-entrypoint-initdb.d/01_init.sql
 
   db_uploader:
     build: ./database

@@ -1,6 +1,7 @@
 flask
 flask-bootstrap
 flask-wtf
+SQLAlchemy
 flask-sqlalchemy
 wtforms-sqlalchemy
 psycopg2

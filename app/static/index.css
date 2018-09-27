@@ -1,0 +1,36 @@
+body{
+    background: #eee;
+}
+h1{
+    text-transform: uppercase;
+    text-align: center;
+}
+#entrydate{
+    border: none;
+    display: block;
+    position: relative;
+    width: 200px;
+    text-align: center;
+    left: 50%;
+    margin-left: -100px;
+    letter-spacing: 1.4px;
+    font-size: 1.4em;
+}
+#datesubmit{
+    color: #FFF;
+    margin-top: 40px; 
+    border: none;
+    display: block;
+    position: relative;
+    width: 100px;
+    text-align: center;
+    left: 50%;
+    margin-left: -50px;
+    font-family: 'Helvetica', 'Arial';
+    font-size: 1.2em;
+    text-transform: uppercase;
+    background-color: #049372;
+}
+#datesubmit:hover{
+    background-color: #4DAF7C
+}
