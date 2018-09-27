@@ -5,9 +5,6 @@ import gzip
 import csv
 import psycopg2
 
-dataset_names = [n for n in os.listdir('csv') if n.endswith('.csv.gz')]
-name = 'out.csv'
-
 
 class RawDataRP5:
 
@@ -27,6 +24,9 @@ class RawDataRP5:
 
         # A variable to avoid dublicates
         self.prev_date = ''
+
+        # Unique id
+        self.ctr = 1
 
     def parse_line(self, line):
         """ Get required data from line """
@@ -85,7 +85,8 @@ class RawDataRP5:
         daytime = {'11:00', '12:00', '13:00', '14:00', '15:00', '16:00'}
 
         del measurements['line']
-        order = ('date', 'time', 't', 'humidity', 'wind_speed',
+        measurements['day_id'] = self.ctr
+        order = ('day_id','date', 'time', 't', 'humidity', 'wind_speed',
                 'wind_direction', 'precipitation', 'precipitation_type')
         
         time = measurements['time']
@@ -96,6 +97,7 @@ class RawDataRP5:
             writer.writerow([measurements[key] for key in order])
             # Avoid dublicates
             self.prev_date = date
+            self.ctr += 1
     
     def process(self):
         """ Create clean csv with required data """
@@ -137,20 +139,20 @@ class RawDataRP5:
                     self.broken_measurements_buffer.append(measurements)
 
 
-def create_tables(connection_params):
+def create_tables(connection_params, temp_csv_name):
     """ Fit data into Postgres database. 
         Create a separate table for each city. """
     dataset_names = [n for n in os.listdir('csv') if n.endswith('.csv.gz')]
     table_names = [n.rstrip('.csv.gz') for n in dataset_names]
-    temp_csv_name = 'tmp.csv'
 
-    with psycopg2.connect(**connection_params) as conn, open(temp_csv_name, mode='rt') as f:
+    with psycopg2.connect(**connection_params) as conn:
         for city in table_names:
             conn = psycopg2.connect(**connection_params)
             cursor = conn.cursor()
             sql = """
             DROP TABLE IF EXISTS %s;
             CREATE TABLE %s(
+            day_id SERIAL NOT NULL PRIMARY KEY,
             dmy DATE,
             time_of_day TIME,
             t float,
@@ -166,20 +168,22 @@ def create_tables(connection_params):
             data_proc = RawDataRP5('csv/{}.csv.gz'.format(city), temp_csv_name)
             data_proc.process()
             
-            cursor = conn.cursor()
-            cursor.copy_from(f, city, sep=',')
-            conn.commit()
+            with open(temp_csv_name, mode='rt') as tmp:
+                cursor = conn.cursor()
+                cursor.copy_from(tmp, city, sep=',')
+                conn.commit()
 
             os.remove(temp_csv_name)
 
-connection_params = {
-    'host': 'localhost',
-    'port': '5431',
-    'user': 'root',
-    'password': 'password',
-    'dbname': 'weather_report'
-}
-create_tables(connection_params)
+if __name__ == '__main__':
+    connection_params = {
+        'host': 'localhost',
+        'port': '5431',
+        'user': 'root',
+        'password': 'password',
+        'dbname': 'weather_report'
+    }
+    create_tables(connection_params, 'tmp.csv')
 
 """
 Possible tests:
