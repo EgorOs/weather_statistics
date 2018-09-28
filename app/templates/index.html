@@ -11,7 +11,7 @@
 <br>
 <form id="date", class="dateform" method="POST", action="/">
     {{ form.csrf_token }}
-    <!-- {{ form.city }} -->
+    <div style="display: none">{{ form.city }}</div>
     <div id="period_select"> 
         <div>{{ form.period_start }} </div>
         <div id="delimiter"> / </div>
