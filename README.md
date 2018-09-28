@@ -13,3 +13,7 @@
 ## Docker commands
 + Rebuild existing containter
     ``` sudo docker-compose up -d --force-recreate --build ```
+
+### How to run
+1. Run ```sudo docker-compose up```
+2. Open ```0.0.0.0:5000``` in your browser
