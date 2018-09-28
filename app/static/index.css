@@ -11,6 +11,7 @@ h1{
     position: relative;
     width: 200px;
     text-align: center;
+    text-indent: 20px;
     left: 50%;
     margin-left: -100px;
     letter-spacing: 1.4px;
@@ -33,4 +34,18 @@ h1{
 }
 #datesubmit:hover{
     background-color: #4DAF7C
+}
+
+
+#entrydate {
+    -webkit-appearance: none;
+}
+#entrydate::-webkit-clear-button{ 
+    display: none;
+}
+#entrydate::-webkit-inner-spin-button,
+#entrydate::-webkit-calendar-picker-indicator {
+    /*display: none;*/
+    color: #049372;
+    -webkit-appearance: none;
 }

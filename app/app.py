@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from flask import Flask, render_template
+from flask import Flask, redirect, url_for, render_template
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 from wtforms import StringField
@@ -8,6 +8,7 @@ from wtforms import StringField
 from flask_wtf import FlaskForm
 from wtforms.fields.html5 import DateField
 import psycopg2
+import datetime as dt
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'SecretKey'
@@ -39,13 +40,13 @@ class WeatherReport(db.Model):
     wind_speed = db.Column(db.Integer)
     wind_direction = db.Column(db.String)
 
-# db.create_all()
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = DateForm()
     if form.validate():
-        return 'Form is submitted ' + str(form.entrydate.data)
+        # return 'Form is submitted ' + str(form.entrydate.data)
+        return redirect(url_for('weather_city', city='alexandria', ymd=str(form.entrydate.data)))
     return render_template('index.html', form=form)
 
 @app.route('/weather')
@@ -68,7 +69,28 @@ def weather():
     print(s)
     for i in res:
         s += str(i) + '<br><hr>'
-    return app.static_url_path
+    return s
+
+
+@app.route('/weather_city/<string:city>/<string:ymd>')
+def weather_city(city, ymd):
+    conn = psycopg2.connect(**connection_params)
+    cursor = conn.cursor()
+    y, m, d = [int(i) for i in ymd.split('-')]
+    sql = """SELECT * 
+               FROM %s
+               WHERE dmy = '%s';""" % (city, dt.date(y,m,d))
+    cursor.execute(sql)
+    res = cursor.fetchall()
+    cursor.execute(str(sql))
+    res = cursor.fetchall()
+    s = [str(i)+'<br><hr>' for i in res]
+    s = ''
+    for i in res:
+        s += str(i) + '<br><hr>'
+    if not s:
+        return '404 not found %s/%s/%s' % (y,m,d)
+    return s
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
