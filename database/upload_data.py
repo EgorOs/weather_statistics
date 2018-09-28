@@ -168,8 +168,8 @@ def fill_weather(connection_params, temp_csv_name):
 
 if __name__ == '__main__':
     connection_params = {
-        'host': 'localhost', #db
-        'port': '5431', #5432
+        'host': 'db',
+        'port': '5432',
         'user': 'root',
         'password': 'password',
         'dbname': 'weather_report'
