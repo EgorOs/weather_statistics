@@ -5,17 +5,44 @@ h1{
     text-transform: uppercase;
     text-align: center;
 }
-#entrydate{
+#period_select{
+    width:440px;
+    height: 50px;
+    position: relative;
+    left: 50%;
+    margin-left:-220px;
+}
+#period_select input{
+    margin-top: 27px;
     border: none;
     display: block;
-    position: relative;
+    float: left;
     width: 200px;
     text-align: center;
     text-indent: 20px;
-    left: 50%;
-    margin-left: -100px;
     letter-spacing: 1.4px;
     font-size: 1.4em;
+}
+
+#period_select input {
+    -webkit-appearance: none;
+}
+#period_select input::-webkit-clear-button{ 
+    display: none;
+}
+#period_select input::-webkit-inner-spin-button,
+#period_select input::-webkit-calendar-picker-indicator {
+    /*display: none;*/
+    color: #049372;
+    -webkit-appearance: none;
+}
+#delimiter{
+    color: rgba(0, 0, 0, .4);
+    font-size: 61px;
+    text-align: center;
+    float: left;
+    height: 40px;
+    width:40px;
 }
 #datesubmit{
     color: #FFF;
@@ -36,16 +63,3 @@ h1{
     background-color: #4DAF7C
 }
 
-
-#entrydate {
-    -webkit-appearance: none;
-}
-#entrydate::-webkit-clear-button{ 
-    display: none;
-}
-#entrydate::-webkit-inner-spin-button,
-#entrydate::-webkit-calendar-picker-indicator {
-    /*display: none;*/
-    color: #049372;
-    -webkit-appearance: none;
-}

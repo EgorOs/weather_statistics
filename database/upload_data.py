@@ -5,6 +5,7 @@ import gzip
 import csv
 import psycopg2
 import time
+from datetime import datetime
 
 
 class RawDataRP5:
@@ -12,9 +13,10 @@ class RawDataRP5:
     """ Processes raw csv files from rp5, extracted parameters
     are date, time, temperature (C), humidity (%), wind speed (m/s), 
     wind direction, precipitation (mm), precipitation intensity."""
-    def __init__(self, path, tempfile):
+    def __init__(self, path, tempfile, city_id):
         self.path = path
         self.tempfile = tempfile
+        self.city_id = city_id
 
         # Valid values kept to reffer to them
         # in case if some values are missing
@@ -26,13 +28,14 @@ class RawDataRP5:
         # A variable to avoid dublicates
         self.prev_date = ''
 
-        # Unique id
-        self.ctr = 1
-
     def parse_line(self, line):
         """ Get required data from line """
         date_time, t, p0, p, pa, U, dd, ws, *other_data, RRR, tR, E, Tg, EE, sss = line.split(';')
         date, time = date_time.strip('"').split(' ')
+        date = datetime.strptime(date, '%d.%m.%Y')
+
+        # Y-m-d fromat is required for postgres
+        date = date.strftime('%Y-%m-%d')
 
         wind_direction = dd.split(' ')[-1].rstrip('"').upper()
         wind_speed = ws.strip('"')
@@ -86,8 +89,8 @@ class RawDataRP5:
         daytime = {'11:00', '12:00', '13:00', '14:00', '15:00', '16:00'}
 
         del measurements['line']
-        measurements['day_id'] = self.ctr
-        order = ('day_id','date', 'time', 't', 'humidity', 'wind_speed',
+        measurements['city_id'] = self.city_id
+        order = ('city_id','date', 'time', 't', 'humidity', 'wind_speed',
                 'wind_direction', 'precipitation', 'precipitation_type')
         
         time = measurements['time']
@@ -98,7 +101,6 @@ class RawDataRP5:
             writer.writerow([measurements[key] for key in order])
             # Avoid dublicates
             self.prev_date = date
-            self.ctr += 1
     
     def process(self):
         """ Create clean csv with required data """
@@ -140,51 +142,39 @@ class RawDataRP5:
                     self.broken_measurements_buffer.append(measurements)
 
 
-def create_tables(connection_params, temp_csv_name):
-    """ Fit data into Postgres database. 
-        Create a separate table for each city. """
+def fill_weather(connection_params, temp_csv_name):
+    """ Fit data into Postgres database. """
     dataset_names = [n for n in os.listdir('csv') if n.endswith('.csv.gz')]
     table_names = [n.rstrip('.csv.gz') for n in dataset_names]
+    city_id = 0
 
     with psycopg2.connect(**connection_params) as conn:
         for city in table_names:
             conn = psycopg2.connect(**connection_params)
             cursor = conn.cursor()
-            sql = """
-            DROP TABLE IF EXISTS %s;
-            CREATE TABLE %s(
-            day_id SERIAL NOT NULL PRIMARY KEY,
-            dmy DATE,
-            time_of_day TIME,
-            t float,
-            humidity FLOAT,
-            wind_speed INTEGER,
-            wind_direction VARCHAR,
-            precipitation INTEGER,
-            precipitation_type VARCHAR
-            );
-            SET datestyle = dmy;""" % (city, city)
+            sql = """INSERT INTO city VALUES(%s, '%s')""" % (city_id, city)
             cursor.execute(sql)
             conn.commit()
-            data_proc = RawDataRP5('csv/{}.csv.gz'.format(city), temp_csv_name)
+            data_proc = RawDataRP5('csv/{}.csv.gz'.format(city), temp_csv_name, city_id)
             data_proc.process()
             
             with open(temp_csv_name, mode='rt') as tmp:
                 cursor = conn.cursor()
-                cursor.copy_from(tmp, city, sep=',')
+                cursor.copy_from(tmp, 'weather', sep=',')
                 conn.commit()
 
             os.remove(temp_csv_name)
+            city_id += 1
 
 if __name__ == '__main__':
     connection_params = {
-        'host': 'db',
-        'port': '5432',
+        'host': 'localhost', #db
+        'port': '5431', #5432
         'user': 'root',
         'password': 'password',
         'dbname': 'weather_report'
     }
-    
+
     while True:
         try:
             conn = psycopg2.connect(**connection_params)
@@ -195,7 +185,7 @@ if __name__ == '__main__':
             print('Trying to connect to database')
             time.sleep(1)
 
-    create_tables(connection_params, 'tmp.csv')
+    fill_weather(connection_params, 'tmp.csv')
     print('Data was successfully uploaded')
 
 """

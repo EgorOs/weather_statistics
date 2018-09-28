@@ -3,8 +3,7 @@
 from flask import Flask, redirect, url_for, render_template
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
-from wtforms import StringField
-# from wtforms import DateField
+from wtforms import SelectField
 from flask_wtf import FlaskForm
 from wtforms.fields.html5 import DateField
 import psycopg2
@@ -25,14 +24,17 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://%(user)s:\
 db = SQLAlchemy(app)
 bootstrap = Bootstrap(app)
 
+
 class DateForm(FlaskForm):
-    entrydate = DateField('entrydate', format='%Y-%m-%d')
+    city = SelectField('city', choices=[('AL', 'Alexandria'), ('RY', 'ryazan')])
+    period_start = DateField('period_start', format='%Y-%m-%d')
+    period_end = DateField('period_end', format='%Y-%m-%d')
 
 class WeatherReport(db.Model):
 
-    __tablename__ = 'ryazan'
+    __tablename__ = 'weather'
 
-    day_id = db.Column(db.Integer, primary_key=True)
+    city_id = db.Column(db.Integer, primary_key=True)
     dmy = db.Column(db.Date)
     time_of_day = db.Column(db.Time)
     t = db.Column(db.Float) 
@@ -46,7 +48,7 @@ def index():
     form = DateForm()
     if form.validate():
         # return 'Form is submitted ' + str(form.entrydate.data)
-        return redirect(url_for('weather_city', city='alexandria', ymd=str(form.entrydate.data)))
+        return redirect(url_for('weather_city', city='0', ymd_min=str(form.period_start.data),  ymd_max=str(form.period_end.data)))
     return render_template('index.html', form=form)
 
 @app.route('/weather')
@@ -72,14 +74,17 @@ def weather():
     return s
 
 
-@app.route('/weather_city/<string:city>/<string:ymd>')
-def weather_city(city, ymd):
+@app.route('/weather_city/<int:city>/<string:ymd_min>/<string:ymd_max>')
+def weather_city(city, ymd_min, ymd_max):
     conn = psycopg2.connect(**connection_params)
     cursor = conn.cursor()
-    y, m, d = [int(i) for i in ymd.split('-')]
+    y, m, d = [int(i) for i in ymd_min.split('-')]
+    ymd_min = dt.date(y,m,d)
+    y, m, d = [int(i) for i in ymd_max.split('-')]
+    ymd_max = dt.date(y,m,d)
     sql = """SELECT * 
-               FROM %s
-               WHERE dmy = '%s';""" % (city, dt.date(y,m,d))
+               FROM weather
+               WHERE city_id = %s and dmy > '%s 'and dmy < '%s';""" % (city, ymd_min, ymd_max)
     cursor.execute(sql)
     res = cursor.fetchall()
     cursor.execute(str(sql))

@@ -13,6 +13,7 @@ services:
       POSTGRES_DB: 'weather_report'
     volumes:
       - ./database/sql/01_init.sql:/docker-entrypoint-initdb.d/01_init.sql
+      - ./database/sql/02_weather.sql:/docker-entrypoint-initdb.d/02_weather.sql
 
   db_uploader:
     build: ./database

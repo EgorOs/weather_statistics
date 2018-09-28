@@ -9,6 +9,7 @@
 + [Mapping multiple tables to the same SQLAlchemy model](https://stackoverflow.com/questions/25451335/sqlalchemy-using-the-same-model-with-multiple-tables)
 + [Datepicker](https://www.youtube.com/watch?v=il9hh5Ysw9o)
 + [Bootstrap examples](https://pythonhosted.org/Flask-Bootstrap/basic-usage.html#examples)
++ [SQL Tables relations](https://www.youtube.com/watch?v=jyklg0cTN3M)
 
 ## Docker commands
 + Rebuild existing containter

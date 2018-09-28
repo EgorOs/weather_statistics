@@ -4,4 +4,3 @@ CREATE TABLE city (
     city_id INTEGER NOT NULL PRIMARY KEY,
     city_name VARCHAR(60)
 );
-

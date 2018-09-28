@@ -7,11 +7,17 @@
 
 {% block content %}
 
-<h1> Choose date </h1>
+<h1> Choose time interval </h1>
 <br>
-<form id="start_date", class="dateform" method="POST", action="/">
+<form id="date", class="dateform" method="POST", action="/">
     {{ form.csrf_token }}
-    {{ form.entrydate }}
+    <!-- {{ form.city }} -->
+    <div id="period_select"> 
+        <div>{{ form.period_start }} </div>
+        <div id="delimiter"> / </div>
+        <div> {{ form.period_end }} </div>
+
+    </div>
     <input type="submit" id="datesubmit" name="", value="submit">
 </form>
 
