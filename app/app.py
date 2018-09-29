@@ -43,7 +43,6 @@ class Weather(db.Model):
     record_id = db.Column('record_id', db.Integer, primary_key=True)
     city_id = db.Column(db.Integer, db.ForeignKey(City.city_id))
     dmy = db.Column(db.Date)
-    time_of_day = db.Column(db.Time)
     t = db.Column(db.Float) 
     humidity = db.Column(db.Float)
     wind_speed = db.Column(db.Integer)
@@ -59,8 +58,6 @@ def city_to_id(city):
     return City.query.filter_by(city_name=name).first().city_id
 
 class DateForm(FlaskForm):
-    # city_records = City.query.all()
-    # options = [('-1', '')] + [(str(c.city_id), c.city_name.capitalize()) for c in city_records]
     city = QuerySelectField(query_factory=city_selection, allow_blank=True, validators=[Required()])
     period_start = DateField('period_start', validators=[InputRequired()], format='%Y-%m-%d')
     period_end = DateField('period_end', validators=[InputRequired()], format='%Y-%m-%d')
@@ -69,7 +66,6 @@ class DateForm(FlaskForm):
 def index():
     form = DateForm()
     if form.validate_on_submit():
-        # return City.query.filter_by(city_name='SPB').first().city_id
         return redirect(url_for('weather_city', city=city_to_id(form.city.data), ymd_min=str(form.period_start.data),  ymd_max=str(form.period_end.data)))
     return render_template('index.html', form=form)
 

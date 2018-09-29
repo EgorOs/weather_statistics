@@ -10,7 +10,7 @@
 + [Datepicker](https://www.youtube.com/watch?v=il9hh5Ysw9o)
 + [Bootstrap examples](https://pythonhosted.org/Flask-Bootstrap/basic-usage.html#examples)
 + [SQL Tables relations](https://www.youtube.com/watch?v=jyklg0cTN3M)
-+ [SQLAlchemy, an Object Relational Mapper](https://www.youtube.com/watch?v=Tu4vRU4lt6k))
++ [SQLAlchemy, an Object Relational Mapper](https://www.youtube.com/watch?v=Tu4vRU4lt6k)
 
 ## Docker commands
 + Rebuild existing containter
@@ -23,4 +23,8 @@
 ## Issues
 
 + [Dropdown validation issue](https://stackoverflow.com/questions/46036966/flask-wtform-validation-failing-for-selectfield-why)
-+ [WTForms SQLAlchemy fields, had to be downgraded](https://stackoverflow.com/questions/48390207/sql-alchemy-valueerror-too-many-values-to-unpack
++ [WTForms SQLAlchemy fields had to be downgraded](https://stackoverflow.com/questions/48390207/sql-alchemy-valueerror-too-many-values-to-unpack)
+
+## Data sources
++ [Reliable Prognosis](https://rp5.ru/Weather_archive_in_Alexandria_(airport))
++ [National Centers For Environmental Information](https://www.ncdc.noaa.gov/cdo-web/search)

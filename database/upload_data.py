@@ -7,18 +7,17 @@ import psycopg2
 import time
 from datetime import datetime
 
-global ids
-ids = 0
 
 class RawDataRP5:
 
     """ Processes raw csv files from rp5, extracted parameters
     are date, time, temperature (C), humidity (%), wind speed (m/s), 
-    wind direction, precipitation (mm), precipitation intensity."""
-    def __init__(self, path, tempfile, city_id):
+    wind direction, precipitation (mm)."""
+    def __init__(self, path, tempfile, city_id, record_id):
         self.path = path
         self.tempfile = tempfile
         self.city_id = city_id
+        self.record_id = record_id
 
         # Valid values kept to reffer to them
         # in case if some values are missing
@@ -91,26 +90,25 @@ class RawDataRP5:
         daytime = {'11:00', '12:00', '13:00', '14:00', '15:00', '16:00'}
 
         del measurements['line']
-        global ids
-        measurements['record_id'] = ids
-        ids += 1
-
+        measurements['record_id'] = self.record_id
         measurements['city_id'] = self.city_id
-        order = ('record_id', 'city_id','date', 'time', 't', 'humidity', 'wind_speed',
+        measurements['humidity'] = float(measurements['humidity'].strip('"'))
+
+        order = ('record_id', 'city_id','date', 't', 'humidity', 'wind_speed',
                 'wind_direction', 'precipitation', 'precipitation_type')
         
         time = measurements['time']
         date = measurements['date']
 
-        measurements['humidity'] = float(measurements['humidity'].strip('"'))
         if time in daytime and date != self.prev_date:
             writer.writerow([measurements[key] for key in order])
+            self.record_id += 1
+
             # Avoid dublicates
             self.prev_date = date
     
     def process(self):
-        """ Create clean csv with required data """
-        with gzip.open(self.path, mode='rt') as f, open(self.tempfile, mode='w', newline='') as f_out:
+        with gzip.open(self.path, mode='rt') as f, open(self.tempfile, mode='a', newline='') as f_out:
             
             # Skip header
             for i in range(7):
@@ -147,30 +145,156 @@ class RawDataRP5:
                 else:
                     self.broken_measurements_buffer.append(measurements)
 
+        return self.record_id
 
-def fill_weather(connection_params, temp_csv_name):
-    """ Fit data into Postgres database. """
-    dataset_names = [n for n in os.listdir('csv') if n.endswith('.csv.gz')]
-    city_names = [n.rstrip('.csv.gz') for n in dataset_names]
-    city_id = 0
+class RawDataNOAA:
+    """ NOAA doesn't provide all required data and is 
+        used as supplementary source. """
+    def __init__(self, path, tempfile, city_id, record_id):
+        self.path = path
+        self.tempfile = tempfile
+        self.city_id = city_id
+        self.record_id = record_id
 
-    with psycopg2.connect(**connection_params) as conn:
-        for city in city_names:
-            conn = psycopg2.connect(**connection_params)
-            cursor = conn.cursor()
-            sql = """INSERT INTO city VALUES(%s, '%s')""" % (city_id, city.lower())
-            cursor.execute(sql)
-            conn.commit()
-            data_proc = RawDataRP5('csv/{}.csv.gz'.format(city), temp_csv_name, city_id)
-            data_proc.process()
+    def parse_line(self, line):
+        """ Get required data from line """
+        station, name, country, date, PRCP, SNWD, t, tmax, tmin = line.split(',')
+        date = date.strip('"')
+
+        date = datetime.strptime(date, '%Y-%m-%d')
+        date = str(date).split(' ')[0]
+
+        precipitation_str = PRCP.strip('"').strip('\n')
+        if precipitation_str == '':
+            precipitation = 0
+        else:
+            precipitation = int(float(precipitation_str))
+        
+        if precipitation == 0:
+            precipitation_type = 'NO'
+        elif SNWD.strip('"').strip('\n') == '':
+            precipitation_type = 'RAIN'
+        else:
+            precipitation_type = 'SNOW'
+
+        measurements = {
+        'date': date,
+        't': t.strip('"'),
+        'humidity': 'NULL',
+        'wind_speed': 'NULL',
+        'wind_direction': 'NULL',
+        'precipitation': precipitation,
+        'precipitation_type': precipitation_type,
+        }
+
+        return measurements
+
+
+    def write_rows(self, measurements, writer):
+        measurements['record_id'] = self.record_id
+        measurements['city_id'] = self.city_id
+
+        order = ('record_id', 'city_id','date', 't', 'humidity', 'wind_speed',
+                'wind_direction', 'precipitation', 'precipitation_type')
+        writer.writerow([measurements[key] for key in order])
+        self.record_id += 1
+
+    def process(self):
+        with gzip.open(self.path, mode='rt') as f, open(self.tempfile, mode='a', newline='') as f_out:
             
-            with open(temp_csv_name, mode='rt') as tmp:
-                cursor = conn.cursor()
-                cursor.copy_from(tmp, 'weather', sep=',')
-                conn.commit()
+            # Skip header
+            for i in range(1):
+                next(f)
 
-            os.remove(temp_csv_name)
-            city_id += 1
+            writer = csv.writer(f_out, delimiter=',')
+
+            for line in f:
+                measurements = self.parse_line(line)
+                self.write_rows(measurements, writer)
+
+        return self.record_id
+
+class DataUploader:
+    def __init__(self, path, tempfile, connection_params):
+        self.path = path
+        self.tempfile = tempfile
+        self.connection_params = connection_params
+        self.record_id = 0
+        self.city_id = 0
+        self.rp5_path = path + 'rp5/'
+        self.NOAA_path = path + 'NOAA/'
+        self.city_names = set()
+        self.city_id_mapper = {}
+
+        if os.path.exists(self.tempfile):
+            os.remove(self.tempfile)
+
+    def get_city_names(self):
+        if os.path.exists(self.rp5_path):
+            dataset_names = [n for n in os.listdir(self.rp5_path) if n.endswith('.csv.gz')]
+            self.city_names.update({n.rstrip('.csv.gz') for n in dataset_names})
+        else:
+            print('WARNING: Rp5 data is missing.\nThere is no directory %s' % self.rp5_path)
+
+        if os.path.exists(self.NOAA_path):
+            dataset_names = [n for n in os.listdir(self.NOAA_path) if n.endswith('.csv.gz')]
+            self.city_names.update({n.rstrip('.csv.gz') for n in dataset_names})
+        else:
+            print('WARNING: NOAA data is missing.\nThere is no directory %s' % self.NOAA_path)
+
+    def set_city_ids(self):
+        for city in sorted(list(self.city_names)):
+            self.city_id_mapper[city] = self.city_id
+            self.city_id += 1
+
+    def process_rp5(self):
+        if os.path.exists(self.rp5_path):
+            dataset_names = [n for n in os.listdir(self.rp5_path) if n.endswith('.csv.gz')]
+            city_names = [n.rstrip('.csv.gz') for n in dataset_names]
+            for city in city_names:
+                city_path = '%s%s.csv.gz' % (self.rp5_path, city)
+                data_proc = RawDataRP5(city_path, self.tempfile, self.city_id_mapper[city], self.record_id)
+            self.record_id = data_proc.process()
+
+    def process_NOAA(self):
+        if os.path.exists(self.NOAA_path):
+            dataset_names = [n for n in os.listdir(self.NOAA_path) if n.endswith('.csv.gz')]
+            city_names = [n.rstrip('.csv.gz') for n in dataset_names]
+            for city in city_names:
+                city_path = '%s%s.csv.gz' % (self.NOAA_path, city)
+                data_proc = RawDataNOAA(city_path, self.tempfile, self.city_id_mapper[city], self.record_id)
+            self.record_id = data_proc.process()
+
+    def prepare(self):
+        self.get_city_names()
+        self.set_city_ids()
+        self.process_rp5()
+        self.process_NOAA()
+
+    def upload(self):
+        # Wait for connection
+        while True:
+            try:
+                conn = psycopg2.connect(**self.connection_params)
+                print('Connetction established')
+                conn.close()
+                break
+            except psycopg2.OperationalError:
+                print('Trying to connect to database')
+                time.sleep(1)
+
+        # Upload cities, since weather table depends on them
+        with psycopg2.connect(**self.connection_params) as conn, open(self.tempfile, mode='rt') as tmp:
+            cursor = conn.cursor()
+            for c, i in self.city_id_mapper.items():
+                sql = """INSERT INTO city VALUES(%s, '%s')""" % (i, c.lower())
+                cursor.execute(sql)
+                conn.commit()
+            cursor.copy_from(tmp, 'weather', null='NULL', sep=',')
+            conn.commit()
+
+        os.remove(self.tempfile)
+        
 
 if __name__ == '__main__':
     connection_params = {
@@ -181,19 +305,9 @@ if __name__ == '__main__':
         'dbname': 'weather_report'
     }
 
-    while True:
-        try:
-            conn = psycopg2.connect(**connection_params)
-            print('Connetction established')
-            conn.close()
-            break
-        except psycopg2.OperationalError:
-            print('Trying to connect to database')
-            time.sleep(1)
-
-    fill_weather(connection_params, 'tmp.csv')
-    print('Data was successfully uploaded')
-
+    uploader = DataUploader('csv/', 'tmp.csv', connection_params)
+    uploader.prepare()
+    uploader.upload()
 """
 Possible tests:
 
