@@ -34,7 +34,7 @@ class City(db.Model):
     city_name = db.Column('city_name', db.Unicode)
 
     def __repr__(self):
-        return self.city_name.capitalize()
+        return self.city_name.upper()
 
 class Weather(db.Model):
 
@@ -69,6 +69,7 @@ class DateForm(FlaskForm):
 def index():
     form = DateForm()
     if form.validate_on_submit():
+        # return City.query.filter_by(city_name='SPB').first().city_id
         return redirect(url_for('weather_city', city=city_to_id(form.city.data), ymd_min=str(form.period_start.data),  ymd_max=str(form.period_end.data)))
     return render_template('index.html', form=form)
 

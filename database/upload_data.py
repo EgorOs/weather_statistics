@@ -151,14 +151,14 @@ class RawDataRP5:
 def fill_weather(connection_params, temp_csv_name):
     """ Fit data into Postgres database. """
     dataset_names = [n for n in os.listdir('csv') if n.endswith('.csv.gz')]
-    table_names = [n.rstrip('.csv.gz') for n in dataset_names]
+    city_names = [n.rstrip('.csv.gz') for n in dataset_names]
     city_id = 0
 
     with psycopg2.connect(**connection_params) as conn:
-        for city in table_names:
+        for city in city_names:
             conn = psycopg2.connect(**connection_params)
             cursor = conn.cursor()
-            sql = """INSERT INTO city VALUES(%s, '%s')""" % (city_id, city)
+            sql = """INSERT INTO city VALUES(%s, '%s')""" % (city_id, city.lower())
             cursor.execute(sql)
             conn.commit()
             data_proc = RawDataRP5('csv/{}.csv.gz'.format(city), temp_csv_name, city_id)
@@ -210,6 +210,8 @@ Combinations like NORTH-NORTHEAST are possible
 Check if date/time on local machine is not ahead of real time
 
 Validation might crush on letters
+
+Check long city names like Saint-Petersburg
 
 Optimization:
 
