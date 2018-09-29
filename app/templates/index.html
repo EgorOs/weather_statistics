@@ -7,18 +7,36 @@
 
 {% block content %}
 
-<h1> Choose time interval </h1>
+
 <br>
 <form id="date", class="dateform" method="POST", action="/">
     {{ form.csrf_token }}
-    <div style="display: none">{{ form.city }}</div>
+    <div id="city_select"> 
+        {{ form.city }} 
+        <ul>
+            {% for error in form.city.error%}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <h3> Select time interval </h3>
     <div id="period_select"> 
         <div>{{ form.period_start }} </div>
+        <ul>
+            {% for error in form.period_start.error%}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
         <div id="delimiter"> / </div>
         <div> {{ form.period_end }} </div>
+        <ul>
+            {% for error in form.period_end.error%}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
 
     </div>
-    <input type="submit" id="datesubmit" name="", value="submit">
+    <input type="submit" id="datesubmit" name="", value="confirm">
 </form>
 
 

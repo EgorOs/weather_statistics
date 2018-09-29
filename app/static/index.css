@@ -1,10 +1,33 @@
-body{
-    background: #eee;
+body {
+    /*background: url(https://images.unsplash.com/photo-1517483000871-1dbf64a6e1c6?ixlib=rb-0.3.5…EyMDd9&s=71fccab…&auto=format&fit=crop&w=1350&q=80);*/
+    background: url('imgs/index_bg.jpg');
+    background-size: cover;
+    background-attachment: fixed;
+    background-position-y: 77%;
 }
-h1{
+
+h3{ 
+    font-size: 10px;
+    margin-top: 27px;
     text-transform: uppercase;
     text-align: center;
 }
+
+#city_select{
+    width:120px;
+    position: relative;
+    left: 50%;
+    margin-left: -60px;
+}
+
+#city_select #city{
+    width:120px;
+    height: 44px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid; 
+}
+
 #period_select{
     width:440px;
     height: 50px;
@@ -33,7 +56,7 @@ h1{
 #period_select input::-webkit-inner-spin-button,
 #period_select input::-webkit-calendar-picker-indicator {
     /*display: none;*/
-    color: #049372;
+    color: #32a2d2;
     -webkit-appearance: none;
 }
 #delimiter{
@@ -55,11 +78,11 @@ h1{
     left: 50%;
     margin-left: -50px;
     font-family: 'Helvetica', 'Arial';
-    font-size: 1.2em;
+    font-size: 14px;
     text-transform: uppercase;
-    background-color: #049372;
+    background-color: #32a2d2;
 }
 #datesubmit:hover{
-    background-color: #4DAF7C
+    background-color: #3ca5d2
 }
 

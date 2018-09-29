@@ -7,6 +7,8 @@ import psycopg2
 import time
 from datetime import datetime
 
+global ids
+ids = 0
 
 class RawDataRP5:
 
@@ -89,8 +91,12 @@ class RawDataRP5:
         daytime = {'11:00', '12:00', '13:00', '14:00', '15:00', '16:00'}
 
         del measurements['line']
+        global ids
+        measurements['record_id'] = ids
+        ids += 1
+
         measurements['city_id'] = self.city_id
-        order = ('city_id','date', 'time', 't', 'humidity', 'wind_speed',
+        order = ('record_id', 'city_id','date', 'time', 't', 'humidity', 'wind_speed',
                 'wind_direction', 'precipitation', 'precipitation_type')
         
         time = measurements['time']

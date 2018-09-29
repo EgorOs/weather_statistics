@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS weather;
 CREATE TABLE weather(
+record_id INTEGER NOT NULL PRIMARY KEY,
 city_id INTEGER references city(city_id),
 dmy DATE,
 time_of_day TIME,

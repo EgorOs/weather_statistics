@@ -3,9 +3,11 @@
 from flask import Flask, redirect, url_for, render_template
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
-from wtforms import SelectField
+from wtforms import SelectField, StringField
 from flask_wtf import FlaskForm
 from wtforms.fields.html5 import DateField
+from wtforms.validators import InputRequired, Required
+from wtforms_sqlalchemy.fields import QuerySelectField
 import psycopg2
 import datetime as dt
 
@@ -18,60 +20,63 @@ connection_params = {
     'password': 'password',
     'dbname': 'weather_report'
 }
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://%(user)s:\
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
 %(password)s@%(host)s:%(port)s/%(dbname)s' % connection_params
 
 db = SQLAlchemy(app)
 bootstrap = Bootstrap(app)
 
+class City(db.Model):
+    
+    __tablename__ = 'city'
 
-class DateForm(FlaskForm):
-    city = SelectField('city', choices=[('AL', 'Alexandria'), ('RY', 'ryazan')])
-    period_start = DateField('period_start', format='%Y-%m-%d')
-    period_end = DateField('period_end', format='%Y-%m-%d')
+    city_id = db.Column('city_id', db.Integer, primary_key=True)
+    city_name = db.Column('city_name', db.Unicode)
 
-class WeatherReport(db.Model):
+    def __repr__(self):
+        return self.city_name.capitalize()
+
+class Weather(db.Model):
 
     __tablename__ = 'weather'
 
-    city_id = db.Column(db.Integer, primary_key=True)
+    record_id = db.Column('record_id', db.Integer, primary_key=True)
+    city_id = db.Column(db.Integer, db.ForeignKey(City.city_id))
     dmy = db.Column(db.Date)
     time_of_day = db.Column(db.Time)
     t = db.Column(db.Float) 
     humidity = db.Column(db.Float)
     wind_speed = db.Column(db.Integer)
-    wind_direction = db.Column(db.String)
+    wind_direction = db.Column(db.Unicode)
 
+def city_selection():
+    """ Represents query as callable object, required for QuerySelectField """
+    return City.query
+
+def city_to_id(city):
+    """ Translates city name into its id if this city is present in database """
+    name = str(city).lower()
+    return City.query.filter_by(city_name=name).first().city_id
+
+class DateForm(FlaskForm):
+    # city_records = City.query.all()
+    # options = [('-1', '')] + [(str(c.city_id), c.city_name.capitalize()) for c in city_records]
+    city = QuerySelectField(query_factory=city_selection, allow_blank=True, validators=[Required()])
+    period_start = DateField('period_start', validators=[InputRequired()], format='%Y-%m-%d')
+    period_end = DateField('period_end', validators=[InputRequired()], format='%Y-%m-%d')
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = DateForm()
-    if form.validate():
-        # return 'Form is submitted ' + str(form.entrydate.data)
-        return redirect(url_for('weather_city', city='0', ymd_min=str(form.period_start.data),  ymd_max=str(form.period_end.data)))
+    if form.validate_on_submit():
+        return redirect(url_for('weather_city', city=city_to_id(form.city.data), ymd_min=str(form.period_start.data),  ymd_max=str(form.period_end.data)))
     return render_template('index.html', form=form)
 
 @app.route('/weather')
 def weather():
-    conn = psycopg2.connect(**connection_params)
-    cursor = conn.cursor()
-    # sql = """
-    #     SELECT * FROM alexandria
-    #     """
-    # cursor.execute(sql)
-    # res = cursor.fetchall()
-    # WeatherReport.__tablename__ = 'ryazan'
-    sql = db.session.query(WeatherReport.t, WeatherReport.dmy)
-    # cursor.execute(str(sql))
-    # res = cursor.fetchall()
-    res = WeatherReport.query.all()
-    print(res[0].dmy)
-    s = [str(i.dmy)+'<br><hr>' for i in res]
-    s = ''
-    print(s)
-    for i in res:
-        s += str(i) + '<br><hr>'
-    return s
+    city_records = City.query.all()
+    cities = [(c.city_id, c.city_name) for c in city_records]
+    return str(cities)
 
 
 @app.route('/weather_city/<int:city>/<string:ymd_min>/<string:ymd_max>')
