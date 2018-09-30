@@ -7,7 +7,7 @@ t FLOAT,
 humidity FLOAT,
 wind_speed INTEGER,
 wind_direction VARCHAR,
-precipitation INTEGER,
+precipitation FLOAT,
 precipitation_type VARCHAR
 );
 SET datestyle = dmy;

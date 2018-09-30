@@ -47,17 +47,19 @@ class RawDataRP5:
             wind_speed = int(wind_speed)
 
             # ADD MORE TYPES BASED ON NUMBERS INCLUDE tR
-        # RRR stands for precipitation
-        if RRR.isdigit():
-            precipitation = int(RRR.strip('"'))
-            # sss stands for snow depth
-            if sss.isdigit():
-                precipitation_type = 'SNOW'
-            else:
-                precipitation_type = 'RAIN'
-        else:
+
+        precipitation_str = RRR.strip('"').strip('\n')
+        if precipitation_str == '':
             precipitation = 0
+        else:
+            precipitation = float(precipitation_str)
+        
+        if precipitation == 0:
             precipitation_type = 'NO'
+        elif sss.strip('"').strip('\n') == '':
+            precipitation_type = 'RAIN'
+        else:
+            precipitation_type = 'SNOW'
 
         measurements = {
         'line': line,
@@ -100,7 +102,8 @@ class RawDataRP5:
         time = measurements['time']
         date = measurements['date']
 
-        if time in daytime and date != self.prev_date:
+        # if time in daytime and date != self.prev_date:
+        if True:
             writer.writerow([measurements[key] for key in order])
             self.record_id += 1
 
@@ -168,7 +171,7 @@ class RawDataNOAA:
         if precipitation_str == '':
             precipitation = 0
         else:
-            precipitation = int(float(precipitation_str))
+            precipitation = float(precipitation_str)
         
         if precipitation == 0:
             precipitation_type = 'NO'
@@ -254,7 +257,7 @@ class DataUploader:
             for city in city_names:
                 city_path = '%s%s.csv.gz' % (self.rp5_path, city)
                 data_proc = RawDataRP5(city_path, self.tempfile, self.city_id_mapper[city], self.record_id)
-            self.record_id = data_proc.process()
+                self.record_id = data_proc.process()
 
     def process_NOAA(self):
         if os.path.exists(self.NOAA_path):
@@ -263,7 +266,7 @@ class DataUploader:
             for city in city_names:
                 city_path = '%s%s.csv.gz' % (self.NOAA_path, city)
                 data_proc = RawDataNOAA(city_path, self.tempfile, self.city_id_mapper[city], self.record_id)
-            self.record_id = data_proc.process()
+                self.record_id = data_proc.process()
 
     def prepare(self):
         self.get_city_names()

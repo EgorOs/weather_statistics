@@ -1,0 +1,24 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %} 
+Weather Statistics 
+{% endblock %}
+
+{% block head %}
+{{super()}}
+<link rel="icon" type="image/png" href="{{url_for('static', filename='favicon.ico')}}">
+{% endblock %}
+
+{% block styles %}
+{{super()}}
+  <link rel="stylesheet" href="{{url_for('static', filename='index.css')}}">
+{% endblock %}
+
+{% block content %}
+
+<h3>Weather</h3>
+
+<h3>Temperature range {{ min_t }} / {{ max_t }}</h3>
+<!-- <h3>Clear / Rainy / Snowy {{ clear_days }} / {{ rainy_days }} / {{ snowy_days }}</h3> -->
+
+{% endblock %}

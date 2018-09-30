@@ -8,6 +8,7 @@ from flask_wtf import FlaskForm
 from wtforms.fields.html5 import DateField
 from wtforms.validators import InputRequired, Required
 from wtforms_sqlalchemy.fields import QuerySelectField
+from sqlalchemy import func, desc, asc
 import psycopg2
 import datetime as dt
 
@@ -47,6 +48,8 @@ class Weather(db.Model):
     humidity = db.Column(db.Float)
     wind_speed = db.Column(db.Integer)
     wind_direction = db.Column(db.Unicode)
+    precipitation = db.Column(db.Float)
+    precipitation_type = db.Column(db.Unicode)
 
 def city_selection():
     """ Represents query as callable object, required for QuerySelectField """
@@ -62,12 +65,19 @@ class DateForm(FlaskForm):
     period_start = DateField('period_start', validators=[InputRequired()], format='%Y-%m-%d')
     period_end = DateField('period_end', validators=[InputRequired()], format='%Y-%m-%d')
 
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = DateForm()
+
     if form.validate_on_submit():
-        return redirect(url_for('weather_city', city=city_to_id(form.city.data), ymd_min=str(form.period_start.data),  ymd_max=str(form.period_end.data)))
+        return redirect(url_for('weather_city', 
+            city_id=city_to_id(form.city.data), 
+            ymd_min=str(form.period_start.data),  
+            ymd_max=str(form.period_end.data)))
+
     return render_template('index.html', form=form)
+
 
 @app.route('/weather')
 def weather():
@@ -76,28 +86,46 @@ def weather():
     return str(cities)
 
 
-@app.route('/weather_city/<int:city>/<string:ymd_min>/<string:ymd_max>')
-def weather_city(city, ymd_min, ymd_max):
+@app.route('/weather_city/<int:city_id>/<string:ymd_min>/<string:ymd_max>')
+def weather_city(city_id, ymd_min, ymd_max):
     conn = psycopg2.connect(**connection_params)
     cursor = conn.cursor()
-    y, m, d = [int(i) for i in ymd_min.split('-')]
-    ymd_min = dt.date(y,m,d)
-    y, m, d = [int(i) for i in ymd_max.split('-')]
-    ymd_max = dt.date(y,m,d)
     sql = """SELECT * 
                FROM weather
-               WHERE city_id = %s and dmy > '%s 'and dmy < '%s';""" % (city, ymd_min, ymd_max)
+               WHERE city_id = %s and dmy > '%s 'and dmy < '%s';""" % (city_id, ymd_min, ymd_max)
     cursor.execute(sql)
-    res = cursor.fetchall()
-    cursor.execute(str(sql))
-    res = cursor.fetchall()
-    s = [str(i)+'<br><hr>' for i in res]
-    s = ''
-    for i in res:
-        s += str(i) + '<br><hr>'
-    if not s:
-        return '404 not found %s/%s/%s' % (y,m,d)
-    return s
+    ordered_t = Weather.query.order_by(asc(Weather.t)).filter(Weather.dmy >= ymd_min, Weather.dmy <= ymd_max, Weather.city_id == city_id).all()
+    min_t = ordered_t[0].t
+    max_t = ordered_t[-1].t
+    avg_t = db.session.query(func.avg(Weather.t).filter(Weather.dmy >= ymd_min, Weather.dmy <= ymd_max, Weather.city_id == city_id)).first()[0]
+    # Zero devision check!
+    clear_days = db.session.query(func.count(Weather.record_id).filter(
+        Weather.dmy >= ymd_min, 
+        Weather.dmy <= ymd_max, 
+        Weather.city_id == city_id,
+        Weather.precipitation_type == 'NO')).first()[0]
+    rainy_days = db.session.query(func.count(Weather.record_id).filter(
+        Weather.dmy >= ymd_min, 
+        Weather.dmy <= ymd_max, 
+        Weather.city_id == city_id,
+        Weather.precipitation_type == 'RAIN')).first()[0]
+    snowy_days = db.session.query(func.count(Weather.dmy).filter(
+        Weather.dmy >= ymd_min, 
+        Weather.dmy <= ymd_max, 
+        Weather.city_id == city_id,
+        Weather.precipitation_type == 'SNOW')).first()[0]
+    # res = cursor.fetchall()
+    # cursor.execute(sql)
+    # res = cursor.fetchall()
+    # s = [str(i)+'<br><hr>' for i in res]
+    # s = ''
+    # for i in res:
+    #     s += str(i) + '<br><hr>'
+    # if not s:
+    #     return '404 not found'
+    # return str(max_t) + '/' + str(min_t) + '/' + str(avg_t) + '/'
+    params = {'max_t':max_t, 'min_t': min_t, 'clear_days':clear_days, 'rainy_days':rainy_days, 'snowy_days':snowy_days}
+    return render_template('weather.html', **params)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
