@@ -9,8 +9,10 @@ from wtforms.fields.html5 import DateField
 from wtforms.validators import InputRequired, Required
 from wtforms_sqlalchemy.fields import QuerySelectField
 from sqlalchemy import func, desc, asc
+import queries
 import psycopg2
 import datetime as dt
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'SecretKey'
@@ -90,30 +92,46 @@ def weather():
 def weather_city(city_id, ymd_min, ymd_max):
     conn = psycopg2.connect(**connection_params)
     cursor = conn.cursor()
-    sql = """SELECT * 
-               FROM weather
-               WHERE city_id = %s and dmy > '%s 'and dmy < '%s';""" % (city_id, ymd_min, ymd_max)
-    cursor.execute(sql)
-    ordered_t = Weather.query.order_by(asc(Weather.t)).filter(Weather.dmy >= ymd_min, Weather.dmy <= ymd_max, Weather.city_id == city_id).all()
-    min_t = ordered_t[0].t
-    max_t = ordered_t[-1].t
-    avg_t = db.session.query(func.avg(Weather.t).filter(Weather.dmy >= ymd_min, Weather.dmy <= ymd_max, Weather.city_id == city_id)).first()[0]
+    # sql = """SELECT * 
+    #            FROM weather
+    #            WHERE city_id = %s and dmy > '%s 'and dmy < '%s';""" % (city_id, ymd_min, ymd_max)
+    # cursor.execute(sql)
+    if ymd_min == ymd_max:
+        ordered_t = Weather.query.order_by(asc(Weather.t)).filter(Weather.dmy == ymd_min, Weather.city_id == city_id).all()
+        min_t = ordered_t[0].t
+        max_t = ordered_t[-1].t
+        avg_t = db.session.query(func.avg(Weather.t).filter(Weather.dmy == ymd_min, Weather.city_id == city_id)).first()[0]
+    else:
+        ordered_t = Weather.query.order_by(asc(Weather.t)).filter(Weather.dmy >= ymd_min, Weather.dmy <= ymd_max, Weather.city_id == city_id).all()
+        min_t = ordered_t[0].t
+        max_t = ordered_t[-1].t
+        avg_t = db.session.query(func.avg(Weather.t).filter(Weather.dmy >= ymd_min, Weather.dmy <= ymd_max, Weather.city_id == city_id)).first()[0]
     # Zero devision check!
-    clear_days = db.session.query(func.count(Weather.record_id).filter(
-        Weather.dmy >= ymd_min, 
-        Weather.dmy <= ymd_max, 
-        Weather.city_id == city_id,
-        Weather.precipitation_type == 'NO')).first()[0]
-    rainy_days = db.session.query(func.count(Weather.record_id).filter(
-        Weather.dmy >= ymd_min, 
-        Weather.dmy <= ymd_max, 
-        Weather.city_id == city_id,
-        Weather.precipitation_type == 'RAIN')).first()[0]
-    snowy_days = db.session.query(func.count(Weather.dmy).filter(
-        Weather.dmy >= ymd_min, 
-        Weather.dmy <= ymd_max, 
-        Weather.city_id == city_id,
-        Weather.precipitation_type == 'SNOW')).first()[0]
+    # clear_days = db.session.query(func.count(Weather.record_id).filter(
+    #     Weather.dmy >= ymd_min, 
+    #     Weather.dmy <= ymd_max, 
+    #     Weather.city_id == city_id,
+    #     Weather.precipitation_type == 'NO')).first()[0]
+    # rainy_days = db.session.query(func.count(Weather.record_id).filter(
+    #     Weather.dmy >= ymd_min, 
+    #     Weather.dmy <= ymd_max, 
+    #     Weather.city_id == city_id,
+    #     Weather.precipitation_type == 'RAIN')).first()[0]
+    # snowy_days = db.session.query(func.count(Weather.dmy).filter(
+    #     Weather.dmy >= ymd_min, 
+    #     Weather.dmy <= ymd_max, 
+    #     Weather.city_id == city_id,
+    #     Weather.precipitation_type == 'SNOW')).first()[0]
+    prec_proc = queries.precipitation_stat(cursor, city_id, ymd_min, ymd_max)
+
+    low_lim = dt.datetime.strptime(ymd_min, '%Y-%m-%d')
+    high_lim = dt.datetime.strptime(ymd_max, '%Y-%m-%d')
+    date_interval = high_lim - low_lim 
+    if date_interval.days > 365.25*2:
+        return 'Interval is greater than two years'
+    # sql = """select count(*) from (select count(*) from weather where precipitation_type = 'RAIN' and city_id = %s and dmy >= '%s' and dmy <= '%s' group by dmy) as days""" % (city_id, ymd_min, ymd_max)
+    # cursor.execute(sql)
+    # res = cursor.fetchall()
     # res = cursor.fetchall()
     # cursor.execute(sql)
     # res = cursor.fetchall()
@@ -124,7 +142,7 @@ def weather_city(city_id, ymd_min, ymd_max):
     # if not s:
     #     return '404 not found'
     # return str(max_t) + '/' + str(min_t) + '/' + str(avg_t) + '/'
-    params = {'max_t':max_t, 'min_t': min_t, 'clear_days':clear_days, 'rainy_days':rainy_days, 'snowy_days':snowy_days}
+    params = {'max_t':max_t, 'min_t': min_t, 'prec_proc':prec_proc}
     return render_template('weather.html', **params)
 
 if __name__ == "__main__":
