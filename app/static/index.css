@@ -1,88 +1,104 @@
-body {
-    /*background: url(https://images.unsplash.com/photo-1517483000871-1dbf64a6e1c6?ixlib=rb-0.3.5…EyMDd9&s=71fccab…&auto=format&fit=crop&w=1350&q=80);*/
-    background: url('imgs/index_bg.jpg');
-    background-size: cover;
-    background-attachment: fixed;
-    background-position-y: 77%;
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Open Sans Regular'), local('OpenSans-Regular'), url(fonts/OpenSans-Regular.ttf) format('ttf');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+*{
+  font-family: 'Open Sans', sans-serif;
+}
+body{
+  background: #2c3e50; 
+  margin:0px;
+  padding:0px;
 }
 
-h3{ 
-    font-size: 10px;
-    margin-top: 27px;
-    text-transform: uppercase;
-    text-align: center;
+#bg_img{
+
+  background: url('imgs/bg_index.jpeg');
+  background-position: 60% 70%;
+  background-attachment: fixed;
+  background-size:cover;
+  margin:0px;
+  padding:0px;
+  width:100%;
+  height:100vh;
+  position: fixed;
+  filter: blur(5px);
+}
+#overlay{
+  position: fixed;
+  margin:0px;
+  padding:0px;
+  width:100%;
+  height:100vh;
+  background:rgba(3, 13, 16, 0.72);
 }
 
-#city_select{
-    width:120px;
-    position: relative;
-    left: 50%;
-    margin-left: -60px;
+#content{
+  width: 400px;
+  height: 470px;
+  position: relative;
+  left:50%;
+  margin-left: -200px;
+  top: 10vh;
+  background: #efefef;
+  background-size:cover;
+  box-shadow: rgba(0,0,0,.6) 2px 2px 30px;
+  background-position: 0% 50%;
 }
+#content form{
 
-#city_select #city{
-    width:120px;
-    height: 44px;
-    background: none;
-    border: none;
-    border-bottom: 2px solid; 
-}
-
-#period_select{
-    width:440px;
-    height: 50px;
-    position: relative;
-    left: 50%;
-    margin-left:-220px;
-}
-#period_select input{
-    margin-top: 27px;
-    border: none;
     display: block;
-    float: left;
-    width: 200px;
-    text-align: center;
-    text-indent: 20px;
-    letter-spacing: 1.4px;
-    font-size: 1.4em;
+    width: 60%;
+    margin-left: 20%;
 }
 
-#period_select input {
-    -webkit-appearance: none;
+#content form select{
+    background:none;
+    display: block;
+    width: 100%;
+    border: none;
+    border-bottom: 2px #333 solid;
+
 }
-#period_select input::-webkit-clear-button{ 
-    display: none;
-}
-#period_select input::-webkit-inner-spin-button,
-#period_select input::-webkit-calendar-picker-indicator {
-    /*display: none;*/
-    color: #32a2d2;
-    -webkit-appearance: none;
-}
-#delimiter{
-    color: rgba(0, 0, 0, .4);
-    font-size: 61px;
+
+#top{
+
+    height: 70px;
+    width: 100%;
     text-align: center;
-    float: left;
-    height: 40px;
-    width:40px;
+    color: white;
+    background: #37a6d3;
+    font-size: 20pt;
+    line-height: 70px;
+    font-weight: 100;
 }
 #datesubmit{
-    color: #FFF;
-    margin-top: 40px; 
-    border: none;
+
+    border: 2px #333 solid;
+    padding: 9px 52px;
+    margin-top: 55px;
     display: block;
-    position: relative;
-    width: 100px;
-    text-align: center;
-    left: 50%;
-    margin-left: -50px;
-    font-family: 'Helvetica', 'Arial';
-    font-size: 14px;
+    background: none;
+    border-radius: 8px;
+    font-weight: 600;
     text-transform: uppercase;
-    background-color: #32a2d2;
+    width: 100%;
 }
-#datesubmit:hover{
-    background-color: #3ca5d2
+h3{
+  font-family: 'Open Sans', sans-serif;
+  margin-top: 40px;
+
 }
 
+#period_start, #period_end{
+    background:none;
+    display: block;
+    width: 137px;
+    border: none;
+    border-bottom: 2px #333 solid;
+    margin-top: 20px;
+}

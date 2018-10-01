@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import psycopg2
+
 def precipitation_stat(cursor, city_id, ymd_min, ymd_max):
     if ymd_min == ymd_max:
         # If only one day selected
@@ -43,11 +45,13 @@ def precipitation_stat(cursor, city_id, ymd_min, ymd_max):
     total_days = cursor.fetchall()[0][0]
     prec_days = total_days - no_prec_days
     if prec_days == 0:
-        return 'no_percipitation'
+        # return 'no_percipitation'
+        return '0'
     elif prec_days == total_days:
-        return 'no_clear_days'
+        # return 'no_clear_days'
+        return '∞'
     else:
-        return str(round((prec_days / no_prec_days) * 100, ndigits=2)) + '%'
+        return str(round((prec_days / no_prec_days) * 100, ndigits=2))
 
 """
 select to_char(dmy, 'yyyy') as year, avg(t)

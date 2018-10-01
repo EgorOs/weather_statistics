@@ -62,6 +62,10 @@ def city_to_id(city):
     name = str(city).lower()
     return City.query.filter_by(city_name=name).first().city_id
 
+def id_to_city(city_id):
+    """ Translates city id into its name if this city is present in database """
+    return City.query.filter_by(city_id=city_id).first().city_name
+
 class DateForm(FlaskForm):
     city = QuerySelectField(query_factory=city_selection, allow_blank=True, validators=[Required()])
     period_start = DateField('period_start', validators=[InputRequired()], format='%Y-%m-%d')
@@ -74,17 +78,30 @@ def index():
 
     # Check if min < max
     if form.validate_on_submit():
-        return redirect(url_for('weather_report', 
+        return redirect(url_for('weather_city', 
             city_id=city_to_id(form.city.data), 
-            ymd_min=str(form.period_start.data),  
+            ymd_min=form.period_start.data,  
             ymd_max=str(form.period_end.data)))
 
     return render_template('index.html', form=form)
 
-@app.route('/weather_report/<int:city_id>/<string:ymd_min>/<string:ymd_max>')
-def weather_report(city_id, ymd_min, ymd_max):
+
+@app.route('/weather')
+def weather():
+    city_records = City.query.all()
+    cities = [(c.city_id, c.city_name) for c in city_records]
+    return str(cities)
+
+
+@app.route('/weather_city/<int:city_id>/<string:ymd_min>/<string:ymd_max>')
+def weather_city(city_id, ymd_min, ymd_max):
     conn = psycopg2.connect(**connection_params)
     cursor = conn.cursor()
+    sql = """SELECT * 
+               FROM weather
+               WHERE city_id = %s and weather.dmy > %s and weather.dmy < %s;"""
+    cursor.execute(sql, [city_id, ymd_min, ymd_max.strip("'")])
+    e = cursor.fetchall()
     if ymd_min == ymd_max:
         ordered_t = Weather.query.order_by(asc(Weather.t)).filter(Weather.dmy == ymd_min, Weather.city_id == city_id).all()
         min_t = ordered_t[0].t
@@ -106,6 +123,9 @@ def weather_report(city_id, ymd_min, ymd_max):
     date_interval = high_lim - low_lim 
 
     params = {
+    'city_name': id_to_city(city_id).upper(),
+    'ymd_min':ymd_min,
+    'ymd_max':ymd_max,
     'max_t':max_t, 
     'min_t': min_t, 
     'prec_proc':prec_proc, 
@@ -113,7 +133,7 @@ def weather_report(city_id, ymd_min, ymd_max):
     'avg_ws': avg_ws, 
     'wind_dir': wind_dir,
     'avg_min_by_year': None,
-    'avg_max_by_year': None
+    'avg_max_by_year': None,
     }
 
     if date_interval.days > 365.25*2:

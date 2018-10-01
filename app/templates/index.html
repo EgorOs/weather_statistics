@@ -17,36 +17,47 @@ Weather Statistics
 {% block content %}
 
 
-<br>
-<form id="date", class="dateform" method="POST", action="/">
-    {{ form.csrf_token }}
-    <div id="city_select"> 
-        {{ form.city }} 
-        <ul>
-            {% for error in form.city.error%}
-                <li>{{ error }}</li>
-            {% endfor %}
-        </ul>
-    </div>
-    <h3> Select time interval </h3>
-    <div id="period_select"> 
-        <div>{{ form.period_start }} </div>
-        <ul>
-            {% for error in form.period_start.error%}
-                <li>{{ error }}</li>
-            {% endfor %}
-        </ul>
-        <div id="delimiter"> / </div>
-        <div> {{ form.period_end }} </div>
-        <ul>
-            {% for error in form.period_end.error%}
-                <li>{{ error }}</li>
-            {% endfor %}
-        </ul>
+<div id="bg_img">
+</div>
+<div id="overlay">
 
-    </div>
-    <input type="submit" id="datesubmit" name="", value="confirm">
-</form>
+<div id='content'>
+    <div id="top">Weather statistics</div>
+    <form id="date", class="dateform" method="POST", action="/">
+        {{ form.csrf_token }}
 
+        <h3>Select city</h3>
+
+        <div id="city_select"> 
+            {{ form.city }} 
+            <ul>
+                {% for error in form.city.error%}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <h3> Select time interval </h3>
+
+        <div id="period_select"> 
+            <div>{{ form.period_start }} </div>
+            <ul>
+                {% for error in form.period_start.error%}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+
+            <div> {{ form.period_end }} </div>
+
+            <ul>
+                {% for error in form.period_end.error%}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+
+        </div>
+        <input type="submit" id="datesubmit" name="", value="Get statistics">
+    </form>
+</div>
 
 {% endblock %}

@@ -7,24 +7,77 @@ Weather Statistics
 {% block head %}
 {{super()}}
 <link rel="icon" type="image/png" href="{{url_for('static', filename='favicon.ico')}}">
+<!-- <link href="https://fonts.googleapis.com/css?family=K2D|Open+Sans" rel="stylesheet"> -->
 {% endblock %}
 
 {% block styles %}
 {{super()}}
-  <link rel="stylesheet" href="{{url_for('static', filename='index.css')}}">
+  <link rel="stylesheet" href="{{url_for('static', filename='weather.css')}}">
+  <link rel="stylesheet" href="{{url_for('static', filename='color_schemes.css')}}">
 {% endblock %}
 
+
 {% block content %}
+<div id="bg_img" style="background: 
+url({{url_for('static', filename='imgs/%s.jpg' % city_name)}}),
+url({{url_for('static', filename='imgs/%s.jpeg' % city_name)}}),
+url({{url_for('static', filename='imgs/%s.png' % city_name)}})
+">
+</div>
+<div id="overlay" >
+</div>
+<div id="content" style="background: 
+url({{url_for('static', filename='imgs/%s.jpg' % city_name)}}),
+url({{url_for('static', filename='imgs/%s.jpeg' % city_name)}}),
+url({{url_for('static', filename='imgs/%s.png' % city_name)}})
+">
+    <div id='nav'>
+      <span>City:</span>
+      <span>{{ city_name }}</span>
+      <span></span>
+      <span>/</span>
+      <span></span>
+      <span>Period:</span>
+      <span>{{ ymd_min }}</span>
+      <span>—</span>
+      <span>{{ ymd_max }}</span>
+      <a href="/">⬅ BACK</a>
+    </div>
+    <div class="r_stat">
+        <ul>
+            <li>
+                <h4>Most common wind direction:</h4> 
+                <div class='param'>{{ wind_dir }}</div>
+            </li>
+        <li>
+            <h4>Most common precipitation types: </h4>
+            <div class='param'>{{ common_prec[0] }} / {{ common_prec[1] }}</div>
+        </li>
+        </ul>
+    </div>
+    <div class="l_stat" id="{{ city_name }}">
+        <ul>
 
-<h3>Weather</h3>
+        <li>
+            <h4>Temperature range</h4> 
+            <div class='param'>{{ min_t }} / {{ max_t }} <span class='metrics'>C°</span></div>
+        </li>
+        <li>
+            <h4>Precipt / No precipt:</h4> 
+            <div class='param'>{{ prec_proc }}<span class='metrics'>%</span></div>
+        </li>
+        <li>
+            <h4>Average wind speed:</h4> 
+            <div class='param'>{{ avg_ws }} <span class='metrics'>m/s</span></div>
+        </li>
 
-<h3>Temperature range {{ min_t }} / {{ max_t }}</h3>
-<h3>Precipt / No precipt: {{ prec_proc }}</h3>
-<h3>Most common prec types: {{ common_prec }}</h3>
-<h3>Average wind speed: {{ avg_ws }} m/s</h3>
-<h3>Mose common wind direction: {{ wind_dir }}</h3>
-{% if avg_min_by_year %}
-<h3> Average min / max by years </h3>
-<h3>{{ avg_min_by_year }} / {{ avg_max_by_year }}</h3>
+        {% if avg_min_by_year %}
+        <li>
+            <h4>Average min / max by years</h4>
+            <div class='param'>{{ avg_min_by_year }} / {{ avg_max_by_year }} <span class='metrics'>C°</span></div>
+        </li>
+        </ul>
+    </div>
+</div>
 {% endif %}
 {% endblock %}
