@@ -31,7 +31,7 @@ class RawDataRP5:
 
     def parse_line(self, line):
         """ Get required data from line """
-        date_time, t, p0, p, pa, U, dd, ws, *other_data, RRR, tR, E, Tg, EE, sss = line.split(';')
+        date_time, t, p0, p, pa, U, dd, ws, *other_data, RRR, tR, __ , E, Tg, EE, __ = line.split(';')
         date, time = date_time.strip('"').split(' ')
         date = datetime.strptime(date, '%d.%m.%Y')
 
@@ -46,20 +46,14 @@ class RawDataRP5:
         else:
             wind_speed = int(wind_speed)
 
-            # ADD MORE TYPES BASED ON NUMBERS INCLUDE tR
-
         precipitation_str = RRR.strip('"').strip('\n')
-        if precipitation_str == '':
+        __as_zero__ = ['', 'Trace of precipitation', 'No precipitation']
+        if precipitation_str in __as_zero__:
             precipitation = 0
         else:
             precipitation = float(precipitation_str)
         
-        if precipitation == 0:
-            precipitation_type = 'NO'
-        elif sss.strip('"').strip('\n') == '':
-            precipitation_type = 'RAIN'
-        else:
-            precipitation_type = 'SNOW'
+
 
         measurements = {
         'line': line,
@@ -70,7 +64,7 @@ class RawDataRP5:
         'wind_speed': wind_speed,
         'wind_direction': wind_direction,
         'precipitation': precipitation,
-        'precipitation_type': precipitation_type,
+        # 'precipitation_type': precipitation_type,
         }
 
         return measurements
@@ -88,6 +82,28 @@ class RawDataRP5:
 
         return measurements
 
+    def classify_precipitation(self, measurements):
+
+        description = ''
+
+        # mm of percipitation = 1 liter of water per m^2
+        if measurements['precipitation'] > 15:
+            description = 'HEAVY'
+        elif measurements['precipitation'] > 7:
+            description = 'MEDIUM'
+        elif measurements['precipitation'] > 1:
+            description = 'LIGHT'
+        elif measurements['precipitation'] > 0:
+            description = 'VERY LIGHT'
+
+        if measurements['precipitation'] == 0:
+            measurements['precipitation_type'] ='NO'
+        elif measurements['precipitation'] > 0 and float(measurements['t']) >= 0:
+            measurements['precipitation_type'] = description + ' RAIN'
+        else:
+            measurements['precipitation_type'] = description + ' SNOW'
+        return measurements
+
     def write_rows(self, measurements, writer):
         daytime = {'11:00', '12:00', '13:00', '14:00', '15:00', '16:00'}
 
@@ -95,6 +111,8 @@ class RawDataRP5:
         measurements['record_id'] = self.record_id
         measurements['city_id'] = self.city_id
         measurements['humidity'] = float(measurements['humidity'].strip('"'))
+
+        measurements = self.classify_precipitation(measurements)
 
         order = ('record_id', 'city_id','date', 't', 'humidity', 'wind_speed',
                 'wind_direction', 'precipitation', 'precipitation_type')
@@ -159,6 +177,28 @@ class RawDataNOAA:
         self.city_id = city_id
         self.record_id = record_id
 
+    def classify_precipitation(self, measurements):
+
+        description = ''
+
+        # mm of percipitation = 1 liter of water per m^2
+        if measurements['precipitation'] > 15:
+            description = 'HEAVY'
+        elif measurements['precipitation'] > 7:
+            description = 'MEDIUM'
+        elif measurements['precipitation'] > 1:
+            description = 'LIGHT'
+        elif measurements['precipitation'] > 0:
+            description = 'VERY LIGHT'
+
+        if measurements['precipitation'] == 0:
+            measurements['precipitation_type'] ='NO'
+        elif measurements['precipitation'] > 0 and float(measurements['t']) >= 0:
+            measurements['precipitation_type'] = description + ' RAIN'
+        else:
+            measurements['precipitation_type'] = description + ' SNOW'
+        return measurements
+
     def parse_line(self, line):
         """ Get required data from line """
         station, name, country, date, PRCP, SNWD, t, tmax, tmin = line.split(',')
@@ -172,13 +212,6 @@ class RawDataNOAA:
             precipitation = 0
         else:
             precipitation = float(precipitation_str)
-        
-        if precipitation == 0:
-            precipitation_type = 'NO'
-        elif SNWD.strip('"').strip('\n') == '':
-            precipitation_type = 'RAIN'
-        else:
-            precipitation_type = 'SNOW'
 
         measurements = {
         'date': date,
@@ -187,7 +220,6 @@ class RawDataNOAA:
         'wind_speed': 'NULL',
         'wind_direction': 'NULL',
         'precipitation': precipitation,
-        'precipitation_type': precipitation_type,
         }
 
         return measurements
@@ -196,6 +228,8 @@ class RawDataNOAA:
     def write_rows(self, measurements, writer):
         measurements['record_id'] = self.record_id
         measurements['city_id'] = self.city_id
+
+        measurements = self.classify_precipitation(measurements)
 
         order = ('record_id', 'city_id','date', 't', 'humidity', 'wind_speed',
                 'wind_direction', 'precipitation', 'precipitation_type')

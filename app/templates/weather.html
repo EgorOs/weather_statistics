@@ -19,6 +19,12 @@ Weather Statistics
 <h3>Weather</h3>
 
 <h3>Temperature range {{ min_t }} / {{ max_t }}</h3>
-<h3>Precipt / No precipt: {{ prec_proc }}% </h3>
-
+<h3>Precipt / No precipt: {{ prec_proc }}</h3>
+<h3>Most common prec types: {{ common_prec }}</h3>
+<h3>Average wind speed: {{ avg_ws }} m/s</h3>
+<h3>Mose common wind direction: {{ wind_dir }}</h3>
+{% if avg_min_by_year %}
+<h3> Average min / max by years </h3>
+<h3>{{ avg_min_by_year }} / {{ avg_max_by_year }}</h3>
+{% endif %}
 {% endblock %}
