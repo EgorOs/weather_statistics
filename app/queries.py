@@ -19,16 +19,16 @@ def precipitation_stat(cursor, city_id, ymd_min, ymd_max):
             return '0'
     else:
         # If range selected
-        no_prec = """
-        select count(*) from (
-            select count(*) from weather   
-            where precipitation_type = 'NO' and 
-                city_id = %s and dmy = %s
-                and dmy <= %s
-            group by dmy
-                ) as days"""
-        cursor.execute(no_prec, (city_id, ymd_min, ymd_max))
-        no_prec_days = cursor.fetchall()[0][0]
+        prec = """
+        select count(*) from(select dmy from weather
+        where precipitation_type != 'NO'
+        and city_id = %s
+                and dmy >= %s 
+                and dmy <= %s 
+        group by dmy) as t_days
+        """
+        cursor.execute(prec, (city_id, ymd_min, ymd_max))
+        prec_days = cursor.fetchall()[0][0]
         total = """
         select count(*) from (
             select count(*) from weather   
@@ -39,7 +39,7 @@ def precipitation_stat(cursor, city_id, ymd_min, ymd_max):
                 ) as days"""
     cursor.execute(total, (city_id, ymd_min, ymd_max))
     total_days = cursor.fetchall()[0][0]
-    prec_days = total_days - no_prec_days
+    no_prec_days = total_days - prec_days
     if prec_days == 0:
         return '0'
     elif prec_days == total_days:
@@ -156,3 +156,14 @@ def common_wind_dir(cursor, city_id, ymd_min, ymd_max):
         return 'NO_DATA'
     
     return wind_dir
+
+def similar_t_days(cursor, city_id, ymd_min, ymd_max):
+    sql = """
+    select t from weather
+    where city_id = %s
+    order by dmy desc
+    limit 1
+    """
+    cursor.execute(sql, (city_id,))
+    last_t = cursor.fetchall()[0][0]
+    return last_t

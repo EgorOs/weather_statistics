@@ -45,6 +45,10 @@ url({{url_for('static', filename='imgs/%s.png' % city_name)}})
       <a href="/">⬅ BACK</a>
     </div>
     <div class="r_stat">
+        <div class='avg_t'>
+        <h4>Average temperature C°</h4> 
+        <div>{{ avg_t }}</div>
+        </div>
         <ul>
             <li>
                 <h4>Most common wind direction:</h4> 

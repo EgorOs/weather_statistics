@@ -119,22 +119,26 @@ def weather():
 def weather_city(city_id, ymd_min, ymd_max):
     conn = psycopg2.connect(**connection_params)
     cursor = conn.cursor()
-    
+
     if ymd_min == ymd_max:
         ordered_t = Weather.query.order_by(asc(Weather.t)).filter(Weather.dmy == ymd_min, Weather.city_id == city_id).all()
         min_t = ordered_t[0].t
         max_t = ordered_t[-1].t
         avg_t = db.session.query(func.avg(Weather.t).filter(Weather.dmy == ymd_min, Weather.city_id == city_id)).first()[0]
+        avg_t = round(avg_t, ndigits=1)
     else:
         ordered_t = Weather.query.order_by(asc(Weather.t)).filter(Weather.dmy >= ymd_min, Weather.dmy <= ymd_max, Weather.city_id == city_id).all()
         min_t = ordered_t[0].t
         max_t = ordered_t[-1].t
         avg_t = db.session.query(func.avg(Weather.t).filter(Weather.dmy >= ymd_min, Weather.dmy <= ymd_max, Weather.city_id == city_id)).first()[0]
+        avg_t = round(avg_t, ndigits=1)
 
     prec_proc = queries.precipitation_stat(cursor, city_id, ymd_min, ymd_max)
     common_prec = queries.most_common_prec_types(cursor, city_id, ymd_min, ymd_max)
     avg_ws = queries.avg_wind_speed(cursor, city_id, ymd_min, ymd_max)
     wind_dir = queries.common_wind_dir(cursor, city_id, ymd_min, ymd_max)
+    st_days = queries.similar_t_days(cursor, city_id, ymd_min, ymd_max)
+
 
     low_lim = dt.datetime.strptime(ymd_min, '%Y-%m-%d')
     high_lim = dt.datetime.strptime(ymd_max, '%Y-%m-%d')
@@ -145,13 +149,15 @@ def weather_city(city_id, ymd_min, ymd_max):
     'ymd_min':ymd_min,
     'ymd_max':ymd_max,
     'max_t':max_t, 
-    'min_t': min_t, 
+    'min_t': min_t,
+    'avg_t': avg_t,
     'prec_proc':prec_proc, 
     'common_prec': common_prec, 
     'avg_ws': avg_ws, 
     'wind_dir': wind_dir,
     'avg_min_by_year': None,
     'avg_max_by_year': None,
+    'st_days': st_days,
     }
 
     if date_interval.days > 365.25*2:
