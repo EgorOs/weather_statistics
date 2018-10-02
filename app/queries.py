@@ -159,11 +159,24 @@ def common_wind_dir(cursor, city_id, ymd_min, ymd_max):
 
 def similar_t_days(cursor, city_id, ymd_min, ymd_max):
     sql = """
-    select t from weather
-    where city_id = %s
-    order by dmy desc
-    limit 1
+        select avg(t) from weather
+        where city_id = %s
+        group by dmy
+        order by dmy desc
+        limit 1
     """
+
     cursor.execute(sql, (city_id,))
-    last_t = cursor.fetchall()[0][0]
-    return last_t
+    today_t = cursor.fetchall()[0][0]
+
+    sql = """
+    select avg(t), dmy from weather
+    where city_id = %s
+    group by dmy
+    order by abs(avg(t) - %s)
+    limit 3
+    """
+    cursor.execute(sql, (city_id, today_t))
+    closest = cursor.fetchall()
+    closest = [ (round(c[0], ndigits=1),c[1]) for c in closest]
+    return today_t, closest

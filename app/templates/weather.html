@@ -7,7 +7,6 @@ Weather Statistics
 {% block head %}
 {{super()}}
 <link rel="icon" type="image/png" href="{{url_for('static', filename='favicon.ico')}}">
-<!-- <link href="https://fonts.googleapis.com/css?family=K2D|Open+Sans" rel="stylesheet"> -->
 {% endblock %}
 
 {% block styles %}
@@ -46,8 +45,21 @@ url({{url_for('static', filename='imgs/%s.png' % city_name)}})
     </div>
     <div class="r_stat">
         <div class='avg_t'>
-        <h4>Average temperature C°</h4> 
+        <h4>Average <br>for this period C°</h4> 
         <div>{{ avg_t }}</div>
+        </div>
+        <div class="avg_today">
+        <div>
+        <h4>Average<br>for today C°</h4> 
+        <h4 id="shift">Similar <br>to</h4> 
+        <div id="avg_digit">{{ today_t }}</div>
+        </div>
+        <div id="closest">
+            {% for date in closest %}
+                <li class="record">{{ date[1] }}</li>
+            {% endfor %}
+    
+        </div>
         </div>
         <ul>
             <li>

@@ -162,9 +162,11 @@ ul li div{
 .avg_t{
     padding-left: 15px;
     margin-left: 10%;
-    background: #fff;
+    background: #ffffff94;
     width: 182px;
     margin-top: 25px;
+    border-bottom: 3px solid white;
+    height: 140px;
 }
 .avg_t div{
     font-size: 41pt;
@@ -184,4 +186,50 @@ ul li div{
     overflow: hidden;
     text-transform: uppercase;
     width: 150px;
+}
+.r_stat .record{
+  background: none;
+  background-color: : none;
+}
+.avg_today{
+    background: #ffffff94;
+    width: 235px;
+    position: relative;
+    top: -150px;
+    left: 259px;
+    height: 140px;
+    margin-bottom: -224px;
+    border-bottom: 3px solid white
+}
+.avg_today h4{
+
+    display: block;
+    position: relative;
+    top: 5px;
+    left: 16px;
+    font-weight: 600;
+    border-bottom: 3px solid;
+    overflow: hidden;
+    text-transform: uppercase;
+    width: 99px;
+}
+#shift{
+    width: 70px;
+    top: -34px;
+    left: 143px;
+}
+#avg_digit{
+  font-size: 41pt;
+  font-weight: 600;
+  position: relative;
+    top: -41px;
+    left: 15px;
+}
+#closest{
+  font-size: 12px;
+  height: 100px;
+  width: 100px;
+    top: -109px;
+    position: relative;
+    left: 129px;
 }

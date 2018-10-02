@@ -137,7 +137,7 @@ def weather_city(city_id, ymd_min, ymd_max):
     common_prec = queries.most_common_prec_types(cursor, city_id, ymd_min, ymd_max)
     avg_ws = queries.avg_wind_speed(cursor, city_id, ymd_min, ymd_max)
     wind_dir = queries.common_wind_dir(cursor, city_id, ymd_min, ymd_max)
-    st_days = queries.similar_t_days(cursor, city_id, ymd_min, ymd_max)
+    today_t, closest = queries.similar_t_days(cursor, city_id, ymd_min, ymd_max)
 
 
     low_lim = dt.datetime.strptime(ymd_min, '%Y-%m-%d')
@@ -157,7 +157,8 @@ def weather_city(city_id, ymd_min, ymd_max):
     'wind_dir': wind_dir,
     'avg_min_by_year': None,
     'avg_max_by_year': None,
-    'st_days': st_days,
+    'today_t': today_t,
+    'closest': closest,
     }
 
     if date_interval.days > 365.25*2:
