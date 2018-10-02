@@ -201,7 +201,15 @@ class RawDataNOAA:
 
     def parse_line(self, line):
         """ Get required data from line """
-        station, name, country, date, PRCP, SNWD, t, tmax, tmin = line.split(',')
+        datasize = len(line.split(','))
+        if datasize == 12:
+            station, name, country, lt, lg, el, date, PRCP, SNWD, t, tmax, tmin, *__ = line.split(',')
+
+        else:
+            station, name, country, date, PRCP, SNWD, t, tmax, tmin, *__ = line.split(',')
+        t = t.strip('"')
+        if t == '':
+            t = 'NULL'
         date = date.strip('"')
 
         date = datetime.strptime(date, '%Y-%m-%d')
@@ -215,7 +223,7 @@ class RawDataNOAA:
 
         measurements = {
         'date': date,
-        't': t.strip('"'),
+        't': t,
         'humidity': 'NULL',
         'wind_speed': 'NULL',
         'wind_direction': 'NULL',
@@ -269,13 +277,13 @@ class DataUploader:
     def get_city_names(self):
         if os.path.exists(self.rp5_path):
             dataset_names = [n for n in os.listdir(self.rp5_path) if n.endswith('.csv.gz')]
-            self.city_names.update({n.rstrip('.csv.gz') for n in dataset_names})
+            self.city_names.update({n.split('.')[0] for n in dataset_names})
         else:
             print('WARNING: Rp5 data is missing.\nThere is no directory %s' % self.rp5_path)
 
         if os.path.exists(self.NOAA_path):
             dataset_names = [n for n in os.listdir(self.NOAA_path) if n.endswith('.csv.gz')]
-            self.city_names.update({n.rstrip('.csv.gz') for n in dataset_names})
+            self.city_names.update({n.split('.')[0] for n in dataset_names})
         else:
             print('WARNING: NOAA data is missing.\nThere is no directory %s' % self.NOAA_path)
 
@@ -287,7 +295,7 @@ class DataUploader:
     def process_rp5(self):
         if os.path.exists(self.rp5_path):
             dataset_names = [n for n in os.listdir(self.rp5_path) if n.endswith('.csv.gz')]
-            city_names = [n.rstrip('.csv.gz') for n in dataset_names]
+            city_names = [n.split('.')[0] for n in dataset_names]
             for city in city_names:
                 city_path = '%s%s.csv.gz' % (self.rp5_path, city)
                 data_proc = RawDataRP5(city_path, self.tempfile, self.city_id_mapper[city], self.record_id)
@@ -296,7 +304,7 @@ class DataUploader:
     def process_NOAA(self):
         if os.path.exists(self.NOAA_path):
             dataset_names = [n for n in os.listdir(self.NOAA_path) if n.endswith('.csv.gz')]
-            city_names = [n.rstrip('.csv.gz') for n in dataset_names]
+            city_names = [n.split('.')[0] for n in dataset_names]
             for city in city_names:
                 city_path = '%s%s.csv.gz' % (self.NOAA_path, city)
                 data_proc = RawDataNOAA(city_path, self.tempfile, self.city_id_mapper[city], self.record_id)
@@ -331,7 +339,7 @@ class DataUploader:
             conn.commit()
 
         os.remove(self.tempfile)
-        
+
 
 if __name__ == '__main__':
     connection_params = {

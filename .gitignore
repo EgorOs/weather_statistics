@@ -1,3 +1,4 @@
 /app/csv
 /app/__pycache__
 /database/upload_data_new.py
+/database/tmp.csv
