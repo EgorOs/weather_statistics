@@ -165,7 +165,7 @@ ul li div{
     background: #ffffff94;
     width: 182px;
     margin-top: 25px;
-    border-bottom: 3px solid white;
+    border-bottom: 3px solid #ffffff3b;
     height: 140px;
 }
 .avg_t div{
@@ -199,7 +199,7 @@ ul li div{
     left: 259px;
     height: 140px;
     margin-bottom: -224px;
-    border-bottom: 3px solid white
+    border-bottom: 3px solid #ffffff3b
 }
 .avg_today h4{
 
