@@ -8,7 +8,7 @@
 
 [Script to measure TTFB](https://stackoverflow.com/a/38915617/9475474)
 
-+ Script output for *weather_city/5/2010-10-01/2018-10-02'*
++ Script output for *http://0.0.0.0:5000/weather_city/5/2010-10-01/2018-10-02*
     ```
     {
         "total_time": 1.198361,
@@ -17,7 +17,7 @@
         "conn_time": 0.000147
     }
     ```
-+ Script output for *weather_city/2/2015-10-01/2018-10-02'*
++ Script output for *http://0.0.0.0:5000/weather_city/2/2015-10-01/2018-10-02*
     ```
     {
         "total_time": 0.874665,
@@ -26,7 +26,7 @@
         "conn_time": 0.000103
     }
     ```
-+ Script output for */*
++ Script output for *http://0.0.0.0:5000/*
     ```
     {
         "total_time": 0.033784, 
@@ -35,7 +35,7 @@
         "conn_time": 0.000101
     }
     ```
-    
+
 # Notes
 
 ## Flask tutorials
