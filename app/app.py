@@ -108,13 +108,6 @@ def index():
     return render_template('index.html', form=form)
 
 
-@app.route('/weather')
-def weather():
-    city_records = City.query.all()
-    cities = [(c.city_id, c.city_name) for c in city_records]
-    return str(cities)
-
-
 @app.route('/weather_city/<int:city_id>/<string:ymd_min>/<string:ymd_max>')
 def weather_city(city_id, ymd_min, ymd_max):
     conn = psycopg2.connect(**connection_params)

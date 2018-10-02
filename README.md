@@ -1,3 +1,41 @@
+# Weather Statistics
+
+## How to run
+1. Run ```sudo docker-compose up```
+2. Open ```0.0.0.0:5000``` in your browser
+
+## Performance test
+
+[Script to measure TTFB](https://stackoverflow.com/a/38915617/9475474)
+
++ Script output for *weather_city/5/2010-10-01/2018-10-02'*
+    ```
+    {
+        "total_time": 1.198361,
+        "starttransfer_time": 1.198221,
+        "dns_time": 2.6e-05,
+        "conn_time": 0.000147
+    }
+    ```
++ Script output for *weather_city/2/2015-10-01/2018-10-02'*
+    ```
+    {
+        "total_time": 0.874665,
+        "starttransfer_time": 0.874526,
+        "dns_time": 2.5e-05,
+        "conn_time": 0.000103
+    }
+    ```
++ Script output for */*
+    ```
+    {
+        "total_time": 0.033784, 
+        "starttransfer_time": 0.033707, 
+        "dns_time": 2.4e-05, 
+        "conn_time": 0.000101
+    }
+    ```
+    
 # Notes
 
 ## Flask tutorials
@@ -15,10 +53,6 @@
 ## Docker commands
 + Rebuild existing containter
     ``` sudo docker-compose up -d --force-recreate --build ```
-
-## How to run
-1. Run ```sudo docker-compose up```
-2. Open ```0.0.0.0:5000``` in your browser
 
 ## Issues
 
