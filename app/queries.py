@@ -179,4 +179,5 @@ def similar_t_days(cursor, city_id, ymd_min, ymd_max):
     cursor.execute(sql, (city_id, today_t))
     closest = cursor.fetchall()
     closest = [ (round(c[0], ndigits=1),c[1]) for c in closest]
+    today_t = round(today_t, ndigits=1)
     return today_t, closest
