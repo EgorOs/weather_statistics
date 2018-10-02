@@ -84,18 +84,9 @@ def date_interval_check(form, field):
         raise ValidationError('Value exeeds dataset limits.')
 
 def date_compare(form, field):
-    # last_date = '2018-10-02'
-    # first_date = '2010-01-01'
-    # upper_limit = dt.datetime.strptime(last_date, '%Y-%m-%d').date()
-    # lower_limit = dt.datetime.strptime(first_date, '%Y-%m-%d').date()
-    # if form.period_start.data <= form.period_end.data:
     if field.data < form.period_start.data:
         field.error = ['Must be greater than initial date']
         raise ValidationError('Value exeeds dataset limits.')
-
-    # if field.data < lower_limit:
-    #     field.error = ['Must be above %s ' % first_date]
-    #     raise ValidationError('Value exeeds dataset limits.')
 
 class DateForm(FlaskForm):
     city = QuerySelectField(query_factory=city_selection, allow_blank=True, validators=[Required()])
@@ -128,11 +119,7 @@ def weather():
 def weather_city(city_id, ymd_min, ymd_max):
     conn = psycopg2.connect(**connection_params)
     cursor = conn.cursor()
-    sql = """SELECT * 
-               FROM weather
-               WHERE city_id = %s and weather.dmy > %s and weather.dmy < %s;"""
-    cursor.execute(sql, [city_id, ymd_min, ymd_max.strip("'")])
-    e = cursor.fetchall()
+    
     if ymd_min == ymd_max:
         ordered_t = Weather.query.order_by(asc(Weather.t)).filter(Weather.dmy == ymd_min, Weather.city_id == city_id).all()
         min_t = ordered_t[0].t

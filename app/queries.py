@@ -89,7 +89,7 @@ def most_common_prec_types(cursor, city_id, ymd_min, ymd_max):
         """
         cursor.execute(sql, (city_id, ymd_min))
         res = cursor.fetchall()
-        common_prec = [r[0]+'1' for r in res if r[0] != 'NO']
+        common_prec = [r[0] for r in res if r[0] != 'NO']
         if common_prec:
             return common_prec
         else:
