@@ -41,9 +41,10 @@ Weather Statistics
 
         <div id="period_select"> 
             <div>{{ form.period_start }} </div>
+                    
             <ul>
                 {% for error in form.period_start.error%}
-                    <li>{{ error }}</li>
+                    <li class="date_error">{{ error }}</li>
                 {% endfor %}
             </ul>
 
@@ -51,7 +52,7 @@ Weather Statistics
 
             <ul>
                 {% for error in form.period_end.error%}
-                    <li>{{ error }}</li>
+                    <li class="date_error">{{ error }}</li>
                 {% endfor %}
             </ul>
 

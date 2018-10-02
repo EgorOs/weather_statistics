@@ -6,19 +6,17 @@ def precipitation_stat(cursor, city_id, ymd_min, ymd_max):
     if ymd_min == ymd_max:
         # If only one day selected
         no_prec = """
-        select count(*) from (
-            select count(*) from weather   
-            where precipitation_type = 'NO' and 
+            select precipitation_type from weather   
+            where  
                 city_id = %s
-                and dmy = %s
-            group by dmy
-                ) as days"""
+                and dmy = %s"""
         cursor.execute(no_prec, (city_id, ymd_min))
-        no_prec_days = cursor.fetchall()
-        if no_prec_days:
-            return no_prec_days
-        else:
+        res = cursor.fetchall()
+        prec = [r[0] for r in res if r[0] != 'NO'] 
+        if prec:
             return '∞'
+        else:
+            return '0'
     else:
         # If range selected
         no_prec = """
@@ -83,24 +81,38 @@ def avg_min_by_year(cursor, city_id, ymd_min, ymd_max):
 
 
 def most_common_prec_types(cursor, city_id, ymd_min, ymd_max):
-    sql = """
-    select count(*), precipitation_type from weather
-    where precipitation_type != 'NO' 
-        and city_id = %s 
-        and dmy >= %s 
-        and dmy <= %s 
-    group by precipitation_type
-    order by count desc
-    limit(2)
-    """
-    cursor.execute(sql, (city_id, ymd_min, ymd_max))
-    res = cursor.fetchall()
-    common_prec = [r[1] for r in res]
+    if ymd_min == ymd_max:
+        sql = """
+        select precipitation_type from weather
+        where city_id = %s 
+            and dmy = %s 
+        """
+        cursor.execute(sql, (city_id, ymd_min))
+        res = cursor.fetchall()
+        common_prec = [r[0]+'1' for r in res if r[0] != 'NO']
+        if common_prec:
+            return common_prec
+        else:
+            return ['NO_PRECIPIATION']
+    else:
+        sql = """
+        select count(*), precipitation_type from weather
+        where precipitation_type != 'NO' 
+            and city_id = %s 
+            and dmy >= %s 
+            and dmy <= %s 
+        group by precipitation_type
+        order by count desc
+        limit(2)
+        """
+        cursor.execute(sql, (city_id, ymd_min, ymd_max))
+        res = cursor.fetchall()
+        common_prec = [r[1] for r in res]
 
-    if len(common_prec) == 0:
-        return ['NO_PRECIPIATION']
+        if len(common_prec) == 0:
+            return ['NO_PRECIPIATION']
 
-    return common_prec
+        return common_prec
 
 
 def avg_wind_speed(cursor, city_id, ymd_min, ymd_max):

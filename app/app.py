@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from wtforms import SelectField, StringField
 from flask_wtf import FlaskForm
 from wtforms.fields.html5 import DateField
-from wtforms.validators import InputRequired, Required
+from wtforms.validators import InputRequired, Required, ValidationError
 from wtforms_sqlalchemy.fields import QuerySelectField
 from sqlalchemy import func, desc, asc
 import queries
@@ -66,10 +66,41 @@ def id_to_city(city_id):
     """ Translates city id into its name if this city is present in database """
     return City.query.filter_by(city_id=city_id).first().city_name
 
+def date_interval_check(form, field):
+    last_date = '2018-10-02'
+    first_date = '2010-01-01'
+    l_y, l_m, l_d = last_date.split('-')
+    last_mdy = '-'.join([l_m, l_d, l_y])
+    f_y, f_m, f_d = first_date.split('-')
+    first_mdy = '-'.join([f_m, f_d, f_y])
+    upper_limit = dt.datetime.strptime(last_date, '%Y-%m-%d').date()
+    lower_limit = dt.datetime.strptime(first_date, '%Y-%m-%d').date()
+    if field.data > upper_limit:
+        field.error = ['Cannot select value above %s ' % last_mdy]
+        raise ValidationError('Value exeeds dataset limits.')
+
+    if field.data < lower_limit:
+        field.error = ['Cannot select value below %s ' % first_mdy]
+        raise ValidationError('Value exeeds dataset limits.')
+
+def date_compare(form, field):
+    # last_date = '2018-10-02'
+    # first_date = '2010-01-01'
+    # upper_limit = dt.datetime.strptime(last_date, '%Y-%m-%d').date()
+    # lower_limit = dt.datetime.strptime(first_date, '%Y-%m-%d').date()
+    # if form.period_start.data <= form.period_end.data:
+    if field.data < form.period_start.data:
+        field.error = ['Must be greater than initial date']
+        raise ValidationError('Value exeeds dataset limits.')
+
+    # if field.data < lower_limit:
+    #     field.error = ['Must be above %s ' % first_date]
+    #     raise ValidationError('Value exeeds dataset limits.')
+
 class DateForm(FlaskForm):
     city = QuerySelectField(query_factory=city_selection, allow_blank=True, validators=[Required()])
-    period_start = DateField('period_start', validators=[InputRequired()], format='%Y-%m-%d')
-    period_end = DateField('period_end', validators=[InputRequired()], format='%Y-%m-%d')
+    period_start = DateField('period_start', validators=[InputRequired(), date_interval_check], format='%Y-%m-%d')
+    period_end = DateField('period_end', validators=[InputRequired(),date_interval_check, date_compare], format='%Y-%m-%d')
 
 
 @app.route('/', methods=['GET', 'POST'])
